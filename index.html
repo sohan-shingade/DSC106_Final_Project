@@ -80,9 +80,15 @@
   <h2>Prototype Writeup</h2>
 
   <h3>What have you done so far?</h3>
+  <p>
+    So far for this project our team has completed the project proposal and are currently working on the project prototype for "Visual History of Wildfire Destruction in California". This basically frames our central question "How the destruction caused by California wildfires has evolved from 2015 to 2025." During the past few weeks we have identified and prepared the dataset CAL FIRE incidents from fire.ca.gov/incidents, which has a record of every California wildfire that has affected 10+ acres of land along with all the fine details containing the name, county, GPS coordinates, acres burned, containment, cause, and structures destroyed. We then built an initial prototype and deployed it to Github pages which contains the interactive core visualization — a D3.js map of California named "Where the Fires Occurred" — in which each wildfire is a red circle whose size encodes the acres burned, and it also has year filter buttons spanning 2015 to 2025.
+  </p>
 
   <h3>What will be the most challenging part of your project to design, and why?</h3>
-  
+  <p>
+    The most challenging part of our project will definitely be creating and designing the visualizations so that they showcase the huge scale and variability of California wildfires without having too much going on that would make it overwhelming. Finding the right encodings — like either using a raw circle area or a logarithmic radius scale — will need a lot of experimentation because each option has its own pros and cons. Another similar challenge would be to weave and collect all of the views (for example the map, the timeline, and county bar chart) into one coherent explanation; this would also allow interactions in one view to update all of the others without confusing the reader. And the last challenge would be performance, since we have so many incidents that all have filtering, tooltips, and transitions. The visualization and animation design has to be fast and intuitive on an average laptop.
+  </p>
+
 </div>
 
 <script>
