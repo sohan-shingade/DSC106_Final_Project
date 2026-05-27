@@ -53,6 +53,15 @@
     z-index: 10;
   }
 
+  .bar-chart-section { margin-top: 48px; }
+  .stacked-bar { opacity: 0.85; cursor: pointer; }
+  .stacked-bar:hover { opacity: 1; stroke: #333; stroke-width: 0.5px; }
+  .axis text { font-size: 12px; font-family: Georgia, serif; fill: #555; }
+  .axis line, .axis path { stroke: #ccc; }
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 12px; justify-content: center; }
+  .legend-item { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; color: #555; font-family: Georgia, serif; }
+  .legend-item svg { display: block; }
+
   .writeup { margin-top: 60px; border-top: 2px solid #eee; padding-top: 32px; }
   .writeup h2 { margin-top: 0; }
   .writeup h3 { font-size: 16px; margin: 24px 0 8px; color: #333; }
@@ -76,17 +85,24 @@
 
 <div class="tooltip" id="tooltip"></div>
 
+<div class="bar-chart-section">
+  <h2>Acres Burned by Year and Region</h2>
+  <p>Each bar shows total acres burned that year, broken down by California region. Click a bar to filter the map.</p>
+  <div class="legend" id="bar-legend"></div>
+  <div id="bar-chart"></div>
+</div>
+
 <div class="writeup">
   <h2>Prototype Writeup</h2>
 
   <h3>What have you done so far?</h3>
   <p>
-    So far for this project our team has completed the project proposal and are currently working on the project prototype for "Visual History of Wildfire Destruction in California". This basically frames our central question "How the destruction caused by California wildfires has evolved from 2015 to 2025." During the past few weeks we have identified and prepared the dataset CAL FIRE incidents from fire.ca.gov/incidents, which has a record of every California wildfire that has affected 10+ acres of land along with all the fine details containing the name, county, GPS coordinates, acres burned, containment, cause, and structures destroyed. We then built an initial prototype and deployed it to Github pages which contains the interactive core visualization — a D3.js map of California named "Where the Fires Occurred" — in which each wildfire is a red circle whose size encodes the acres burned, and it also has year filter buttons spanning 2015 to 2025.
+    We finished our proposal and have been building out the prototype for "Visual History of Wildfire Destruction in California." Our main question is how wildfire destruction in California has changed from 2015 to 2025. We pulled our data from CAL FIRE's incident archive (fire.ca.gov/incidents), which logs every wildfire over 10 acres with details like name, county, coordinates, acres burned, containment percentage, and structures destroyed. So far the prototype has two D3 visualizations: a map of California where each fire is a circle sized by acres burned, and a stacked bar chart showing acres burned per year broken down by five California regions. The two views are linked, so you can click a year button or a bar and both charts update together. That makes it easy to compare where fires hit hardest in a given year and which regions took the most damage.
   </p>
 
   <h3>What will be the most challenging part of your project to design, and why?</h3>
   <p>
-    The most challenging part of our project will definitely be creating and designing the visualizations so that they showcase the huge scale and variability of California wildfires without having too much going on that would make it overwhelming. Finding the right encodings — like either using a raw circle area or a logarithmic radius scale — will need a lot of experimentation because each option has its own pros and cons. Another similar challenge would be to weave and collect all of the views (for example the map, the timeline, and county bar chart) into one coherent explanation; this would also allow interactions in one view to update all of the others without confusing the reader. And the last challenge would be performance, since we have so many incidents that all have filtering, tooltips, and transitions. The visualization and animation design has to be fast and intuitive on an average laptop.
+    Honestly, the hardest part is going to be showing how big these fires are without the visualization turning into a mess. Some fires burn hundreds of thousands of acres and others burn like 15, so we keep going back and forth on whether to use a square-root scale, a log scale, or something else for the circle sizes, since each one has tradeoffs. We also want to add a county-level breakdown eventually, and getting the map, the bar chart, and a county view to all talk to each other smoothly is going to take some work. On top of that, we have over 3,000 fire records, and once you add tooltips, transitions, and filtering on all of them, keeping things fast on a normal laptop is not a given. That's probably where we'll spend most of our time in the next few weeks.
   </p>
 
 </div>
@@ -193,9 +209,146 @@ function init() {
     );
   }
 
+  // --- Stacked bar chart: acres burned by year and region ---
+  const regionMap = {
+    'North Coast': ['Del Norte','Humboldt','Mendocino','Lake','Sonoma','Napa','Marin'],
+    'Northern Interior': ['Siskiyou','Modoc','Trinity','Shasta','Lassen','Tehama','Glenn',
+      'Colusa','Plumas','Sierra','Butte','Yuba','Sutter','Nevada'],
+    'Central & Valley': ['Sacramento','Yolo','Solano','San Joaquin','Stanislaus','Merced',
+      'Madera','Fresno','Kings','Tulare','Kern','Placer','El Dorado','Amador','Calaveras',
+      'Tuolumne','Mariposa','Alpine','Mono','Inyo'],
+    'Bay Area & Central Coast': ['Contra Costa','Alameda','San Mateo','Santa Clara','Santa Cruz',
+      'San Francisco','San Benito','Monterey','San Luis Obispo','Santa Barbara','Ventura'],
+    'Southern California': ['Los Angeles','Orange','Riverside','San Bernardino','San Diego','Imperial']
+  };
+
+  const countyToRegion = {};
+  for (const [region, counties] of Object.entries(regionMap)) {
+    counties.forEach(c => countyToRegion[c] = region);
+  }
+
+  function getRegion(countyStr) {
+    const first = countyStr.split(',')[0].trim();
+    return countyToRegion[first] || 'Other';
+  }
+
+  const regions = Object.keys(regionMap);
+  const regionColors = d3.scaleOrdinal()
+    .domain(regions)
+    .range(['#2d6a4f','#e76f51','#264653','#e9c46a','#c1121f']);
+
+  const legendEl = document.getElementById('bar-legend');
+
+  fetch('https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/california-counties.geojson')
+    .then(r => r.json())
+    .then(caCounties => {
+      const miniW = 40, miniH = 55;
+      const miniProj = d3.geoMercator().center([-119.5, 37.4]).scale(210).translate([miniW/2, miniH/2]);
+      const miniPath = d3.geoPath().projection(miniProj);
+
+      regions.forEach(r => {
+        const item = document.createElement('div');
+        item.className = 'legend-item';
+
+        const svg = d3.select(item).append('svg')
+          .attr('width', miniW).attr('height', miniH);
+
+        svg.selectAll('.bg')
+          .data(caCounties.features)
+          .join('path')
+          .attr('d', miniPath)
+          .attr('fill', '#eee')
+          .attr('stroke', '#ccc')
+          .attr('stroke-width', 0.3);
+
+        const rCounties = regionMap[r];
+        svg.selectAll('.hl')
+          .data(caCounties.features.filter(f => rCounties.includes(f.properties.name)))
+          .join('path')
+          .attr('d', miniPath)
+          .attr('fill', regionColors(r))
+          .attr('stroke', '#fff')
+          .attr('stroke-width', 0.3);
+
+        const label = document.createElement('span');
+        label.textContent = r;
+        item.appendChild(label);
+        legendEl.appendChild(item);
+      });
+    });
+
+  const stackData = years.map(yr => {
+    const row = { year: yr };
+    regions.forEach(r => row[r] = 0);
+    RAW_DATA.filter(d => d.year === yr).forEach(d => {
+      const r = getRegion(d.county);
+      if (row[r] !== undefined) row[r] += d.acres;
+    });
+    return row;
+  });
+
+  const stack = d3.stack().keys(regions);
+  const series = stack(stackData);
+
+  const BW = 700, BH = 320;
+  const bMargin = { top: 20, right: 20, bottom: 40, left: 80 };
+  const bInnerW = BW - bMargin.left - bMargin.right;
+  const bInnerH = BH - bMargin.top - bMargin.bottom;
+
+  const barSvg = d3.select('#bar-chart')
+    .append('svg')
+    .attr('viewBox', `0 0 ${BW} ${BH}`)
+    .attr('preserveAspectRatio', 'xMidYMid meet');
+
+  const barG = barSvg.append('g')
+    .attr('transform', `translate(${bMargin.left},${bMargin.top})`);
+
+  const xBar = d3.scaleBand().domain(years).range([0, bInnerW]).padding(0.2);
+  const yMax = d3.max(stackData, d => regions.reduce((s, r) => s + d[r], 0));
+  const yBar = d3.scaleLinear().domain([0, yMax]).nice().range([bInnerH, 0]);
+
+  barG.append('g')
+    .attr('class', 'axis')
+    .attr('transform', `translate(0,${bInnerH})`)
+    .call(d3.axisBottom(xBar).tickFormat(d3.format('d')));
+
+  barG.append('g')
+    .attr('class', 'axis')
+    .call(d3.axisLeft(yBar).ticks(5).tickFormat(d => d >= 1e6 ? (d/1e6)+'M' : d >= 1e3 ? (d/1e3)+'K' : d));
+
+  barG.selectAll('g.series')
+    .data(series)
+    .join('g')
+    .attr('class', 'series')
+    .attr('fill', d => regionColors(d.key))
+    .selectAll('rect')
+    .data(d => d.map(seg => ({ ...seg, region: d.key })))
+    .join('rect')
+    .attr('class', 'stacked-bar')
+    .attr('x', d => xBar(d.data.year))
+    .attr('y', d => yBar(d[1]))
+    .attr('height', d => yBar(d[0]) - yBar(d[1]))
+    .attr('width', xBar.bandwidth())
+    .on('click', (e, d) => {
+      selectedYear = selectedYear === d.data.year ? null : d.data.year;
+      refresh();
+    })
+    .on('mouseover', (e, d) => {
+      const acres = d[1] - d[0];
+      const total = regions.reduce((s, r) => s + d.data[r], 0);
+      showTip(e, `<strong>${d.data.year} — ${d.region}</strong><br>${Math.round(acres).toLocaleString()} acres<br>${total.toLocaleString()} total`);
+    })
+    .on('mouseout', hideTip);
+
+  function updateBars() {
+    barG.selectAll('.stacked-bar')
+      .attr('opacity', d => selectedYear === null || d.data.year === selectedYear ? 0.85 : 0.25);
+  }
+
   function refresh() {
     updateButtons();
     drawDots();
+    updateBars();
   }
 
   drawDots();
