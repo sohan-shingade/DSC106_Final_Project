@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Visual History of Wildfire Destruction in California</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<style>
+  body {
+    font-family: Georgia, serif;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 24px;
+    background: #fff;
+    color: #222;
+  }
+
+  h1 { font-size: 32px; margin-bottom: 8px; }
+  h2 { font-size: 22px; margin: 48px 0 8px; }
+  p { font-size: 16px; line-height: 1.7; color: #444; max-width: 680px; margin-bottom: 16px; }
+  .subtitle { font-size: 15px; color: #888; margin-bottom: 32px; }
+
+  .year-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .year-btn {
+    padding: 5px 12px;
+    font-size: 13px;
+    border: 1px solid #ccc;
+    background: #fff;
+    cursor: pointer;
+    border-radius: 3px;
+    font-family: Georgia, serif;
+  }
+  .year-btn:hover { background: #f0f0f0; }
+  .year-btn.active { background: #cc3300; color: #fff; border-color: #cc3300; }
+
+  svg { width: 100%; }
+  .ca-outline { fill: #f5f5f5; stroke: #bbb; stroke-width: 1px; }
+  .fire-dot { fill: #cc3300; opacity: 0.5; cursor: pointer; }
+  .fire-dot:hover { opacity: 1; stroke: #333; stroke-width: 0.5px; }
+
+  .tooltip {
+    position: fixed;
+    background: rgba(0,0,0,0.8);
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: Georgia, serif;
+    pointer-events: none;
+    display: none;
+    line-height: 1.5;
+    max-width: 200px;
+    z-index: 10;
+  }
+
+  .writeup { margin-top: 60px; border-top: 2px solid #eee; padding-top: 32px; }
+  .writeup h2 { margin-top: 0; }
+  .writeup h3 { font-size: 16px; margin: 24px 0 8px; color: #333; }
+</style>
+</head>
+<body>
+
+<h1>Visual History of Wildfire Destruction in California</h1>
+<div class="subtitle">DSC 106 Final Project Prototype -- Prabhjas Singh, Sohan Shingade, Nirav Kanthed
+</div>
+
+<p>
+  How has the destruction caused by California wildfires evolved from 2015 to 2025?
+  Use the buttons below to filter the map by year.
+</p>
+
+<div class="year-filters" id="year-filters"></div>
+
+<h2>Where the Fires Occurred</h2>
+<div id="map-chart"></div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<div class="writeup">
+  <h2>Prototype Writeup</h2>
+
+  <h3>What have you done so far?</h3>
+
+  <h3>What will be the most challenging part of your project to design, and why?</h3>
+  
+</div>
+
+<script>
+let RAW_DATA = [];
+
+fetch('firedata.json')
+  .then(r => r.json())
+  .then(data => {
+    RAW_DATA = data;
+    init();
+  });
+
+function init() {
+  const years = d3.range(2015, 2026);
+  let selectedYear = null;
+
+  const tooltip = document.getElementById('tooltip');
+  function showTip(e, html) {
+    tooltip.style.display = 'block';
+    tooltip.innerHTML = html;
+    moveTip(e);
+  }
+  function moveTip(e) {
+    tooltip.style.left = (e.clientX + 14) + 'px';
+    tooltip.style.top  = (e.clientY - 10) + 'px';
+  }
+  function hideTip() { tooltip.style.display = 'none'; }
+  document.addEventListener('mousemove', moveTip);
+
+
+  const filterContainer = document.getElementById('year-filters');
+
+  const allBtn = document.createElement('button');
+  allBtn.className = 'year-btn active';
+  allBtn.textContent = 'All Years';
+  allBtn.addEventListener('click', () => { selectedYear = null; refresh(); });
+  filterContainer.appendChild(allBtn);
+
+  years.forEach(yr => {
+    const btn = document.createElement('button');
+    btn.className = 'year-btn';
+    btn.textContent = yr;
+    btn.addEventListener('click', () => {
+      selectedYear = selectedYear === yr ? null : yr;
+      refresh();
+    });
+    filterContainer.appendChild(btn);
+  });
+
+  function updateButtons() {
+    document.querySelectorAll('.year-btn').forEach(b => {
+      const yr = parseInt(b.textContent);
+      b.classList.toggle('active',
+        isNaN(yr) ? selectedYear === null : yr === selectedYear);
+    });
+  }
+
+  const MW = 500, MH = 600;
+
+  const mapSvg = d3.select('#map-chart')
+    .append('svg')
+    .attr('viewBox', `0 0 ${MW} ${MH}`)
+    .attr('preserveAspectRatio', 'xMidYMid meet');
+
+  const proj = d3.geoMercator().center([-119.5, 37.4]).scale(2600).translate([MW/2, MH/2]);
+
+  const outlineGroup = mapSvg.append('g');
+  const dotsGroup    = mapSvg.append('g');
+
+  const rScale = d3.scaleSqrt().domain([0, d3.max(RAW_DATA, d => d.acres)]).range([2, 22]);
+
+  fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json')
+    .then(r => r.json())
+    .then(us => {
+      const ca = us.features.find(f => f.properties.name === 'California');
+      if (ca) {
+        outlineGroup.append('path')
+          .datum(ca)
+          .attr('d', d3.geoPath().projection(proj))
+          .attr('class', 'ca-outline');
+      }
+    })
+    .catch(() => {});
+
+  function drawDots() {
+    const visible = selectedYear ? RAW_DATA.filter(d => d.year === selectedYear) : RAW_DATA;
+    const sorted  = [...visible].sort((a, b) => b.acres - a.acres); 
+    dotsGroup.selectAll('.fire-dot').data(sorted, d => d.name + d.year + d.lat).join(
+      enter => enter.append('circle')
+        .attr('class', 'fire-dot')
+        .attr('cx', d => proj([d.lon, d.lat])[0])
+        .attr('cy', d => proj([d.lon, d.lat])[1])
+        .attr('r',  d => rScale(d.acres))
+        .on('mouseover', (e, d) => showTip(e,
+          `<strong>${d.name}</strong><br>${d.county} County, ${d.year}<br>${d.acres.toLocaleString()} acres`))
+        .on('mouseout', hideTip),
+      update => update
+        .attr('cx', d => proj([d.lon, d.lat])[0])
+        .attr('cy', d => proj([d.lon, d.lat])[1])
+        .attr('r',  d => rScale(d.acres)),
+      exit => exit.remove()
+    );
+  }
+
+  function refresh() {
+    updateButtons();
+    drawDots();
+  }
+
+  drawDots();
+}
+</script>
+</body>
+</html>
