@@ -209,6 +209,19 @@
   .step { opacity: 0; transform: translateY(18px); transition: opacity .7s ease, transform .7s cubic-bezier(.2,.7,.2,1); }
   .step.in-view { opacity: 1; transform: none; }
   @media (prefers-reduced-motion: reduce){ .step { opacity: 1; transform: none; transition: none; } }
+
+  /* ---------- scroll-snap slide storytelling ---------- */
+  html { scroll-snap-type: y proximity; scroll-behavior: smooth; }
+  .masthead, .blk, .plate-fig {
+    min-height: 100vh; margin: 0; display: flex; flex-direction: column; justify-content: center;
+    scroll-snap-align: center; scroll-snap-stop: normal;
+  }
+  [data-parallax] { will-change: transform; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-snap-type: none; } }
+  @media (max-width: 760px) {
+    html { scroll-snap-type: none; }
+    .masthead, .blk, .plate-fig { min-height: auto; padding: 12vh 0; scroll-snap-align: none; justify-content: flex-start; }
+  }
 </style>
 </head>
 <body>
@@ -222,17 +235,16 @@
   <h1 class="title">
     <span class="t-the">The</span>
     <span class="t-shrink" id="shrinkword"></span>
-    <span class="t-fire">Fire</span>
+    <span class="t-fire" data-parallax="0.07">Fire</span>
   </h1>
   <p class="standfirst">Everyone knows California's wildfires keep getting bigger. The data says the <span class="hot">opposite</span>, and that is what hides the real danger.</p>
   <p class="dateline">Prabhjas Singh, Sohan Shingade &amp; Nirav Kanthed&nbsp;&nbsp;//&nbsp;&nbsp;Source: CAL FIRE incident archive</p>
 </header>
 
-<div class="sheet"><div class="scorch"></div></div>
 
 <!-- ============ 01 ============ -->
 <section class="blk sheet">
-  <div class="ghost" style="top:-3rem; left:-1rem; font-size:clamp(120px,24vw,300px)">01</div>
+  <div class="ghost" data-parallax="0.22" style="top:-3rem; left:-1rem; font-size:clamp(120px,24vw,300px)">01</div>
   <div class="mark step">File 01 — the count</div>
   <h2 class="step">Smaller fires.<br>Many more of them.</h2>
   <p class="step">Read two numbers at once. The bars are total acres burned each year. The line is how many
@@ -266,11 +278,10 @@
   <p class="verdict step">More fires, but each one smaller. If that were the whole story, things would be improving.</p>
 </section>
 
-<div class="sheet"><div class="scorch"></div></div>
 
 <!-- ============ 02 ============ -->
 <section class="blk sheet">
-  <div class="ghost" style="top:-4rem; right:-1rem; font-size:clamp(140px,30vw,420px)">02</div>
+  <div class="ghost" data-parallax="0.28" style="top:-4rem; right:-1rem; font-size:clamp(140px,30vw,420px)">02</div>
   <p class="blast step">42%<small>of every acre burned in eleven years came from just TEN fires.</small></p>
   <div class="alignr indent" style="margin-top:clamp(16px,3vh,40px)">
     <div class="mark step">File 02 — the tail</div>
@@ -301,11 +312,10 @@
   <p class="verdict r step">The average fire is harmless. The risk is all in the tail you cannot count.</p>
 </section>
 
-<div class="sheet"><div class="scorch"></div></div>
 
 <!-- ============ 03 (page is reddening — go light) ============ -->
 <section class="blk sheet light">
-  <div class="ghost" style="top:-4rem; left:-1rem; font-size:clamp(120px,24vw,300px)">03</div>
+  <div class="ghost" data-parallax="0.22" style="top:-4rem; left:-1rem; font-size:clamp(120px,24vw,300px)">03</div>
   <div class="mark step">File 03 — the drift</div>
   <h2 class="step">Toward people.<br>Into winter.</h2>
   <p class="step">Now the part that should change how you read the next headline. Step through the years, or
@@ -345,8 +355,11 @@
 </section>
 
 <figure class="plate-fig sheet tilt2 step light">
-  <div class="fighead"><span class="figtag">Fig 5</span><span class="figcap">The fire season, unspooled. January at top; each loop is a year, 2015 at center to 2025 on the rim.</span></div>
-  <div class="plate"><div id="spiral-chart"></div></div>
+  <div class="fighead"><span class="figtag">Fig 5</span><span class="figcap">The fire season, unspooled. January at top; each loop is a year, 2015 at center to 2025 on the rim. Press play to watch a decade ignite.</span></div>
+  <div class="plate">
+    <div class="controls"><button class="play-btn" id="spiral-play">&#9654; Run timelapse</button></div>
+    <div id="spiral-chart"></div>
+  </div>
 </figure>
 
 <section class="blk sheet light">
@@ -355,7 +368,7 @@
 
 <!-- ============ 04 close (char) ============ -->
 <section class="blk sheet light">
-  <div class="ghost" style="top:-2rem; left:-2rem; font-size:clamp(120px,22vw,280px)">04</div>
+  <div class="ghost" data-parallax="0.2" style="top:-2rem; left:-2rem; font-size:clamp(120px,22vw,280px)">04</div>
   <div class="mark step">The takeaway</div>
   <h2 class="step" style="font-size:clamp(48px,11vw,150px); max-width:none">Stop counting acres.</h2>
   <p class="step">The typical California fire is shrinking, yet the risk is rising. A few unpredictable
@@ -770,7 +783,8 @@ function init() {
   // ============================================================
   // CHART C3: fire season spiral
   // ============================================================
-  (function drawSpiral() {
+  let spiralPlay = null;
+  spiralPlay = (function drawSpiral() {
     const S = 560, cx = S/2, cy = S/2;
     const svg = d3.select('#spiral-chart').append('svg')
       .attr('viewBox', `0 0 ${S} ${S}`).attr('preserveAspectRatio', 'xMidYMid meet');
@@ -791,16 +805,18 @@ function init() {
         .attr('text-anchor', 'middle').attr('dy', '0.35em').text(mn);
     });
 
+    // chronological order so the timelapse spirals outward through the decade
     const dots = RAW_DATA.map(d => {
       const frac = yearFrac(d);
-      const r = r0 + step * ((d.year - 2015) + frac);
+      const t = (d.year - 2015) + frac;
+      const r = r0 + step * t;
       const ang = (-90 + 360*frac) * Math.PI/180;
       return { x: cx + r*Math.cos(ang), y: cy + r*Math.sin(ang),
-               a: d.acres, name: d.name, year: d.year, county: d.county };
-    }).sort((a, b) => b.a - a.a);
+               a: d.acres, name: d.name, year: d.year, county: d.county, t };
+    }).sort((a, b) => a.t - b.t);
 
-    svg.append('g').selectAll('circle').data(dots).join('circle')
-      .attr('cx', d => d.x).attr('cy', d => d.y).attr('r', d => rDot(d.a))
+    const sel = svg.append('g').selectAll('circle').data(dots).join('circle')
+      .attr('cx', d => d.x).attr('cy', d => d.y).attr('r', 0)
       .attr('fill', d => col(Math.sqrt(d.a))).attr('opacity', 0.9)
       .style('cursor', 'pointer')
       .on('mouseover', (e, d) => showTip(e,
@@ -813,6 +829,27 @@ function init() {
       svg.append('text').attr('x', cx + 4).attr('y', cy - r)
         .attr('fill', '#7d7160').attr('font-size', 9).attr('font-family', SANS).text(y);
     });
+
+    // ticking year counter at the eye of the spiral
+    const counter = svg.append('text').attr('x', cx).attr('y', cy).attr('text-anchor', 'middle')
+      .attr('dy', '0.34em').attr('font-family', SANS).attr('font-size', 30).attr('font-weight', 600)
+      .attr('fill', '#ff5a1f').attr('opacity', 0).text('');
+
+    let running = false;
+    function timelapse() {
+      if (running) return; running = true;
+      sel.interrupt().attr('r', 0);
+      counter.interrupt().attr('opacity', 1).text('2015');
+      const dur = 6500, n = dots.length;
+      sel.transition().delay((d, i) => dur * i / n).duration(260).attr('r', d => rDot(d.a));
+      const start = performance.now();
+      const tk = setInterval(() => {
+        const p = Math.min(1, (performance.now() - start) / dur);
+        counter.text(String(2015 + Math.min(10, Math.floor(p * 11))));
+        if (p >= 1) { clearInterval(tk); running = false; counter.transition().delay(500).duration(700).attr('opacity', 0); }
+      }, 70);
+    }
+    return timelapse;
   })();
 
   // ============================================================
@@ -840,6 +877,20 @@ function init() {
       selectedYear = years[i]; refresh(); addScar(years[i]);
     }, 900);
   });
+
+  // ---------- auto-run animations when a figure scrolls into view ----------
+  function autorun(id, fn) {
+    const node = document.getElementById(id); if (!node) return;
+    if (!('IntersectionObserver' in window)) { fn(); return; }
+    const o = new IntersectionObserver(es => {
+      es.forEach(e => { if (e.isIntersecting) { fn(); o.disconnect(); } });
+    }, { threshold: 0.35 });
+    o.observe(node);
+  }
+  const spBtn = document.getElementById('spiral-play');
+  if (spBtn) spBtn.addEventListener('click', () => spiralPlay && spiralPlay());
+  autorun('spiral-chart', () => spiralPlay && spiralPlay());
+  autorun('map-chart', () => { if (!playTimer) playBtn.click(); });
 }
 
 // ---------- reveal (graceful) ----------
@@ -852,6 +903,28 @@ function init() {
   }, { threshold: 0.1 });
   steps.forEach(s => obs.observe(s));
   setTimeout(showAll, 2500);
+})();
+
+// ---------- parallax depth ----------
+(function parallax() {
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const els = [...document.querySelectorAll('[data-parallax]')];
+  if (!els.length) return;
+  let ticking = false;
+  function update() {
+    const vh = window.innerHeight;
+    for (const el of els) {
+      const sp = parseFloat(el.dataset.parallax) || 0;
+      const r = el.getBoundingClientRect();
+      const mid = r.top + r.height / 2 - vh / 2;
+      const ty = Math.max(-70, Math.min(70, -mid * sp));  // clamp so layers stay home
+      el.style.transform = `translate3d(0, ${ty.toFixed(1)}px, 0)`;
+    }
+    ticking = false;
+  }
+  window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+  window.addEventListener('resize', update);
+  update();
 })();
 </script>
 </body>
