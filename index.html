@@ -3,108 +3,335 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Visual History of Wildfire Destruction in California</title>
+<title>The Shrinking Fire: Rethinking California Wildfire Risk</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <style>
+  :root {
+    --fire: #cc3300;
+    --ink: #1d1d1f;
+    --muted: #6b6b70;
+  }
+  * { box-sizing: border-box; }
   body {
-    font-family: Georgia, serif;
-    max-width: 900px;
+    font-family: Georgia, 'Times New Roman', serif;
+    max-width: 860px;
     margin: 0 auto;
-    padding: 40px 24px;
+    padding: 48px 24px 96px;
     background: #fff;
-    color: #222;
+    color: var(--ink);
   }
 
-  h1 { font-size: 32px; margin-bottom: 8px; }
-  h2 { font-size: 22px; margin: 48px 0 8px; }
-  p { font-size: 16px; line-height: 1.7; color: #444; max-width: 680px; margin-bottom: 16px; }
-  .subtitle { font-size: 15px; color: #888; margin-bottom: 32px; }
+  h1 { font-size: 40px; line-height: 1.15; margin: 0 0 12px; letter-spacing: -0.5px; }
+  h2 { font-size: 25px; margin: 8px 0 6px; letter-spacing: -0.3px; }
+  h3 { font-size: 17px; margin: 22px 0 8px; color: #333; }
+  p  { font-size: 17px; line-height: 1.72; color: #2b2b2e; max-width: 680px; margin: 0 0 16px; }
+  .subtitle { font-size: 16px; color: var(--muted); margin: 0 0 6px; }
+  .byline { font-size: 14px; color: var(--muted); margin: 0 0 40px; }
+  .lead { font-size: 21px; line-height: 1.6; color: #1d1d1f; }
+  .lead .accent { color: var(--fire); font-weight: bold; }
 
-  .year-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  a { color: var(--fire); }
+
+  /* scrollytelling reveal */
+  .step { opacity: 0; transform: translateY(22px); transition: opacity .7s ease, transform .7s ease; }
+  .step.in-view { opacity: 1; transform: none; }
+
+  section { margin: 64px 0; }
+  .section-tag {
+    font-family: -apple-system, system-ui, sans-serif;
+    font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--fire); font-weight: 700; margin-bottom: 4px;
+  }
+
+  /* charts */
+  svg { width: 100%; height: auto; display: block; }
+  .chart-card {
+    border: 1px solid #ececec; border-radius: 10px; padding: 20px;
+    margin: 20px 0; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.04);
+  }
+  .chart-title { font-size: 16px; font-weight: bold; margin: 0 0 2px; }
+  .chart-note  { font-size: 13px; color: var(--muted); margin: 0 0 14px; font-family: -apple-system, system-ui, sans-serif; }
+
+  .axis text { font-size: 12px; font-family: -apple-system, system-ui, sans-serif; fill: #555; }
+  .axis line, .axis path { stroke: #d9d9d9; }
+  .grid line { stroke: #f0f0f0; }
+  .grid path { stroke: none; }
+
+  .acres-bar { fill: #e9b8a8; }
+  .count-line { fill: none; stroke: var(--fire); stroke-width: 3; }
+  .count-dot  { fill: var(--fire); }
+  .axis-label { font-size: 12px; font-family: -apple-system, system-ui, sans-serif; fill: #555; font-weight: 600; }
+  .anno { font-size: 12px; font-family: -apple-system, system-ui, sans-serif; fill: var(--ink); }
+  .anno-line { stroke: #999; stroke-width: 1; stroke-dasharray: 3 2; }
+
+  /* stat row */
+  .stat-row { display: flex; gap: 28px; flex-wrap: wrap; margin: 20px 0 8px; }
+  .stat { flex: 1; min-width: 150px; }
+  .stat .num { font-size: 34px; font-weight: bold; color: var(--fire); line-height: 1; }
+  .stat .lbl { font-size: 13px; color: var(--muted); margin-top: 6px; font-family: -apple-system, system-ui, sans-serif; }
+
+  /* concentration */
+  .conc-seg { stroke: #fff; stroke-width: 1.5; }
+  .conc-label { font-size: 13px; font-family: -apple-system, system-ui, sans-serif; }
+  .topfire { display: flex; justify-content: space-between; font-size: 14px;
+             padding: 6px 0; border-bottom: 1px solid #f0f0f0; font-family: -apple-system, system-ui, sans-serif; }
+  .topfire .yr { color: var(--muted); width: 48px; }
+  .topfire .nm { flex: 1; }
+  .topfire .ac { color: var(--fire); font-weight: 600; }
+
+  /* map + controls */
+  .controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  .year-filters { display: flex; gap: 6px; flex-wrap: wrap; }
   .year-btn {
-    padding: 5px 12px;
-    font-size: 13px;
-    border: 1px solid #ccc;
-    background: #fff;
-    cursor: pointer;
-    border-radius: 3px;
-    font-family: Georgia, serif;
+    padding: 5px 11px; font-size: 13px; border: 1px solid #ccc; background: #fff;
+    cursor: pointer; border-radius: 3px; font-family: -apple-system, system-ui, sans-serif;
   }
-  .year-btn:hover { background: #f0f0f0; }
-  .year-btn.active { background: #cc3300; color: #fff; border-color: #cc3300; }
+  .year-btn:hover { background: #f4f4f4; }
+  .year-btn.active { background: var(--fire); color: #fff; border-color: var(--fire); }
+  .play-btn {
+    padding: 6px 16px; font-size: 13px; font-weight: 600; border: none; border-radius: 3px;
+    background: var(--ink); color: #fff; cursor: pointer; font-family: -apple-system, system-ui, sans-serif;
+  }
+  .play-btn:hover { background: #000; }
 
-  svg { width: 100%; }
-  .ca-outline { fill: #f5f5f5; stroke: #bbb; stroke-width: 1px; }
-  .fire-dot { fill: #cc3300; opacity: 0.5; cursor: pointer; }
-  .fire-dot:hover { opacity: 1; stroke: #333; stroke-width: 0.5px; }
+  .map-wrap { display: grid; grid-template-columns: 1.1fr 1fr; gap: 16px; align-items: start; }
+  @media (max-width: 720px) { .map-wrap { grid-template-columns: 1fr; } }
+  .ca-outline { fill: #1a1a1a; stroke: #333; stroke-width: 1px; }
+  .fire-dot { opacity: 0.7; cursor: pointer; }
+  .fire-dot:hover { opacity: 1; stroke: #fff; stroke-width: 0.5px; }
+  .scar { pointer-events: none; }
+  .bee { cursor: pointer; }
 
   .tooltip {
-    position: fixed;
-    background: rgba(0,0,0,0.8);
-    color: #fff;
-    padding: 8px 12px;
-    border-radius: 4px;
-    font-size: 13px;
-    font-family: Georgia, serif;
-    pointer-events: none;
-    display: none;
-    line-height: 1.5;
-    max-width: 200px;
-    z-index: 10;
+    position: fixed; background: rgba(20,20,20,0.92); color: #fff; padding: 8px 12px;
+    border-radius: 5px; font-size: 13px; font-family: -apple-system, system-ui, sans-serif;
+    pointer-events: none; display: none; line-height: 1.5; max-width: 220px; z-index: 50;
   }
 
-  .bar-chart-section { margin-top: 48px; }
-  .stacked-bar { opacity: 0.85; cursor: pointer; }
+  .stacked-bar { opacity: 0.88; cursor: pointer; }
   .stacked-bar:hover { opacity: 1; stroke: #333; stroke-width: 0.5px; }
-  .axis text { font-size: 12px; font-family: Georgia, serif; fill: #555; }
-  .axis line, .axis path { stroke: #ccc; }
-  .legend { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 12px; justify-content: center; }
-  .legend-item { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; color: #555; font-family: Georgia, serif; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 10px; justify-content: center; }
+  .legend-item { display: flex; flex-direction: column; align-items: center; gap: 2px;
+                 font-size: 11px; color: #555; font-family: -apple-system, system-ui, sans-serif; }
   .legend-item svg { display: block; }
 
-  .writeup { margin-top: 60px; border-top: 2px solid #eee; padding-top: 32px; }
-  .writeup h2 { margin-top: 0; }
-  .writeup h3 { font-size: 16px; margin: 24px 0 8px; color: #333; }
+  /* seasonality heatmap */
+  .cell { stroke: #fff; stroke-width: 1.5; }
+  .cell.flag { stroke: var(--fire); stroke-width: 2.5; }
+
+  /* banners */
+  .takeaway {
+    border-left: 4px solid var(--fire); background: #fbf3f0; padding: 18px 22px;
+    margin: 22px 0; border-radius: 0 8px 8px 0;
+  }
+  .takeaway .k { font-family: -apple-system, system-ui, sans-serif; font-size: 12px;
+                 letter-spacing: 1px; text-transform: uppercase; color: var(--fire); font-weight: 700; }
+  .takeaway p { font-size: 18px; margin: 6px 0 0; }
+
+  .final-takeaway {
+    background: var(--ink); color: #fff; padding: 32px; border-radius: 12px; margin: 56px 0;
+  }
+  .final-takeaway h2 { color: #fff; margin-top: 0; }
+  .final-takeaway p { color: #e6e6e6; font-size: 18px; }
+
+  .writeup { margin-top: 72px; border-top: 2px solid #eee; padding-top: 36px; }
+  .video-embed { margin: 40px 0; }
+  .video-embed .frame {
+    border: 1px dashed #ccc; border-radius: 10px; padding: 28px; text-align: center;
+    color: var(--muted); font-family: -apple-system, system-ui, sans-serif; font-size: 14px;
+  }
 </style>
 </head>
 <body>
 
-<h1>Visual History of Wildfire Destruction in California</h1>
-<div class="subtitle">DSC 106 Final Project Prototype -- Prabhjas Singh, Sohan Shingade, Nirav Kanthed
-</div>
+<div class="section-tag">DSC 106 Final Project</div>
+<h1>The Shrinking Fire</h1>
+<p class="subtitle">Why "acres burned" hides the real story of California wildfire risk, 2015&ndash;2025.</p>
+<p class="byline">Prabhjas Singh &middot; Sohan Shingade &middot; Nirav Kanthed &nbsp;|&nbsp; Data: CAL FIRE incident archive (3,118 fires)</p>
 
-<p>
-  How has the destruction caused by California wildfires evolved from 2015 to 2025?
-  Use the buttons below to filter the map by year.
+<p class="lead step">
+  Every year the headlines say the same thing: California wildfires keep getting bigger.
+  But when you look at all 3,118 recorded fires from 2015 to 2025, the data says something
+  more surprising. The <span class="accent">typical</span> fire is actually getting
+  <span class="accent">smaller</span> &mdash; and that is exactly what makes the real danger easy to miss.
 </p>
 
-<div class="year-filters" id="year-filters"></div>
+<!-- ============ ACT A: smaller & more numerous ============ -->
+<section>
+  <div class="section-tag step">Finding 1</div>
+  <h2 class="step">Fires got smaller, and far more common</h2>
+  <p class="step">
+    Compare two things side by side. The bars are the total acres burned each year. The red line
+    is the number of separate fires. They pull apart: the count climbs to record highs in 2024 and
+    2025, while total acreage stays well below the 2020 peak. Better detection and faster suppression
+    now catch most fires while they are still small.
+  </p>
 
-<h2>Where the Fires Occurred</h2>
-<div id="map-chart"></div>
+  <div class="chart-card step">
+    <p class="chart-title">Total acres burned (bars) vs. number of fires (line)</p>
+    <p class="chart-note">Left axis: acres burned. Right axis: count of fires. California, 2015&ndash;2025.</p>
+    <div id="dual-chart"></div>
+  </div>
+
+  <div class="stat-row step">
+    <div class="stat"><div class="num">112 &rarr; 30</div><div class="lbl">Median fire size, acres (2015 &rarr; 2025)</div></div>
+    <div class="stat"><div class="num">95 &rarr; 554</div><div class="lbl">Fires recorded per year (2015 &rarr; 2025)</div></div>
+    <div class="stat"><div class="num">&minus;73%</div><div class="lbl">Drop in the typical fire's size</div></div>
+  </div>
+
+  <div class="takeaway step">
+    <div class="k">So far</div>
+    <p>More fires, but each one smaller. If that were the whole story, things would be improving.</p>
+  </div>
+</section>
+
+<!-- ============ ACT B: concentration ============ -->
+<section>
+  <div class="section-tag step">Finding 2</div>
+  <h2 class="step">A handful of monsters do almost all the damage</h2>
+  <p class="step">
+    Here is why "average fire size" lies. Destruction is wildly lopsided. Out of 3,118 fires, just
+    <strong>10</strong> account for <strong>42%</strong> of every acre burned in eleven years. The top
+    50 account for nearly three quarters. The 2020 and 2021 acreage spikes were not a thousand fires
+    getting worse &mdash; they were a few enormous complex fires, like the August Complex, which alone
+    burned over a million acres.
+  </p>
+
+  <div class="chart-card step">
+    <p class="chart-title">Every fire of the decade, by size</p>
+    <p class="chart-note">Each ember is one of 3,118 fires, placed left-to-right by acres burned and colored by region. Almost all pile up tiny on the left. A few monsters are flung far to the right.</p>
+    <div id="beeswarm-chart"></div>
+  </div>
+
+  <div class="chart-card step">
+    <p class="chart-title">Share of all acres burned, 2015&ndash;2025</p>
+    <p class="chart-note">Each fire ranked by size. A tiny number of fires dominate the total.</p>
+    <div id="conc-chart"></div>
+  </div>
+
+  <div class="chart-card step">
+    <p class="chart-title">The biggest fires of the decade</p>
+    <p class="chart-note">These few events drive the acreage peaks.</p>
+    <div id="topfire-list"></div>
+  </div>
+
+  <div class="takeaway step">
+    <div class="k">So far</div>
+    <p>The average fire is harmless. Risk lives entirely in the rare tail &mdash; the megafire you cannot predict by counting.</p>
+  </div>
+</section>
+
+<!-- ============ ACT C: where & when ============ -->
+<section>
+  <div class="section-tag step">Finding 3</div>
+  <h2 class="step">The threat is moving toward people, and into winter</h2>
+  <p class="step">
+    Now the part that should change how you think about risk. Use the controls to step through the
+    years, or press Play. Watch where the fires cluster. Through 2020 and 2021 the giant fires burned
+    in the sparsely populated northern interior. By 2025 the burden swung south: Southern California's
+    share of acres jumped to roughly <strong>40%</strong>, including the January Los Angeles fires
+    that destroyed entire neighborhoods.
+  </p>
+
+  <div class="chart-card step">
+    <div class="controls">
+      <button class="play-btn" id="play-btn">&#9654; Play 2015&ndash;2025</button>
+      <div class="year-filters" id="year-filters"></div>
+    </div>
+    <div class="legend" id="bar-legend"></div>
+    <div class="map-wrap">
+      <div>
+        <p class="chart-title">Where the fires burned</p>
+        <p class="chart-note">Each dot is one fire, sized by acres. Click a region bar or year to filter.</p>
+        <div id="map-chart"></div>
+      </div>
+      <div>
+        <p class="chart-title">Acres burned by region</p>
+        <p class="chart-note">Click a bar to filter the map to that year.</p>
+        <div id="bar-chart"></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="step">
+    Fire is also escaping its season. The grid below shows acres burned by month for each year. For
+    most of the decade the heat sits in summer and fall. But 2025 lights up across the whole row &mdash;
+    including <strong>January</strong>, the month of the Palisades and Eaton fires. Wildfire is becoming
+    a year-round, everywhere problem.
+  </p>
+
+  <div class="chart-card step">
+    <p class="chart-title">When fires burn: acres by month and year</p>
+    <p class="chart-note">Darker means more acres. The outlined cell is January 2025, the Los Angeles fires.</p>
+    <div id="season-chart"></div>
+  </div>
+
+  <div class="takeaway step">
+    <div class="k">So far</div>
+    <p>Fewer wildland acres, but closer to where people live and outside the months we plan for.</p>
+  </div>
+</section>
+
+<!-- ============ TAKEAWAY ============ -->
+<div class="final-takeaway step">
+  <h2>The takeaway</h2>
+  <p>
+    "Acres burned" is the wrong headline. The typical California fire is shrinking, yet risk is rising,
+    because a few unpredictable megafires drive nearly all the destruction, and that destruction is
+    moving into cities and into winter. Counting acres tells you the past was bad. Reading the
+    distribution tells you where to prepare next: for rare catastrophic events at the wildland-urban
+    edge, all year long.
+  </p>
+</div>
 
 <div class="tooltip" id="tooltip"></div>
 
-<div class="bar-chart-section">
-  <h2>Acres Burned by Year and Region</h2>
-  <p>Each bar shows total acres burned that year, broken down by California region. Click a bar to filter the map.</p>
-  <div class="legend" id="bar-legend"></div>
-  <div id="bar-chart"></div>
-</div>
+<!-- ============ VIDEO ============ -->
+<section class="video-embed">
+  <div class="section-tag">Demo</div>
+  <h2>Two-minute walkthrough</h2>
+  <div class="frame" id="video-frame">
+    Demo video coming soon. The YouTube embed will be placed here.
+  </div>
+</section>
 
+<!-- ============ WRITEUP ============ -->
 <div class="writeup">
-  <h2>Prototype Writeup</h2>
+  <h2>About this project</h2>
 
-  <h3>What have you done so far?</h3>
+  <h3>The question and the story</h3>
   <p>
-    We finished our proposal and have been building out the prototype for "Visual History of Wildfire Destruction in California." Our main question is how wildfire destruction in California has changed from 2015 to 2025. We pulled our data from CAL FIRE's incident archive (fire.ca.gov/incidents), which logs every wildfire over 10 acres with details like name, county, coordinates, acres burned, containment percentage, and structures destroyed. So far the prototype has two D3 visualizations: a map of California where each fire is a circle sized by acres burned, and a stacked bar chart showing acres burned per year broken down by five California regions. The two views are linked, so you can click a year button or a bar and both charts update together. That makes it easy to compare where fires hit hardest in a given year and which regions took the most damage.
+    We set out to answer how the destruction caused by California wildfires has changed from 2015 to
+    2025. The easy answer is that fires keep getting bigger, but our data pushed back on that. Working
+    from CAL FIRE's incident archive of 3,118 fires, we found that the typical fire has gotten smaller
+    and far more frequent. That sounds like good news, but it hides three things that matter more: a
+    handful of rare megafires drive almost half of all acres burned, the damage is shifting toward the
+    populated south, and fire is spilling outside its normal season into winter. We built the page to
+    walk a reader through that argument one step at a time.
   </p>
 
-  <h3>What will be the most challenging part of your project to design, and why?</h3>
+  <h3>How the visualizations support the argument</h3>
   <p>
-    Honestly, the hardest part is going to be showing how big these fires are without the visualization turning into a mess. Some fires burn hundreds of thousands of acres and others burn like 15, so we keep going back and forth on whether to use a square-root scale, a log scale, or something else for the circle sizes, since each one has tradeoffs. We also want to add a county-level breakdown eventually, and getting the map, the bar chart, and a county view to all talk to each other smoothly is going to take some work. On top of that, we have over 3,000 fire records, and once you add tooltips, transitions, and filtering on all of them, keeping things fast on a normal laptop is not a given. That's probably where we'll spend most of our time in the next few weeks.
+    The project uses D3 and five linked views, each carrying one beat of the story. A combined bar and
+    line chart shows total acres falling while fire counts rise. A concentration bar makes the
+    lopsidedness obvious by showing that ten fires own forty percent of all acreage. A California map
+    plots every fire as a circle sized by acres, and a stacked bar breaks acreage down by region. The
+    map, the year buttons, and the region bars are all linked, so filtering one updates the others, and
+    a Play button animates the decade so you can watch the burden swing south. A month-by-year heatmap
+    reveals the season stretching open. We chose a square-root scale for the circles so that a
+    million-acre fire does not visually swallow the map, and we kept the color palette restrained so
+    region and intensity stay readable.
   </p>
 
+  <h3>What was most challenging</h3>
+  <p>
+    The hardest part was making a counterintuitive argument legible. The honest signal in this data is
+    a distribution, not a single rising line, so we had to design views that show both the shrinking
+    typical fire and the dominating tail without contradicting each other. Tuning the scales, keeping
+    over 3,000 records responsive with tooltips and animation, and matching county names across our
+    fire data and the map boundaries all took real iteration. The result is a page we think changes how
+    a reader interprets the next wildfire headline.
+  </p>
 </div>
 
 <script>
@@ -112,104 +339,34 @@ let RAW_DATA = [];
 
 fetch('firedata.json')
   .then(r => r.json())
-  .then(data => {
-    RAW_DATA = data;
-    init();
-  });
+  .then(data => { RAW_DATA = data; init(); })
+  .catch(err => { console.error('data load failed', err); });
 
 function init() {
   const years = d3.range(2015, 2026);
   let selectedYear = null;
 
+  // ---------- tooltip ----------
   const tooltip = document.getElementById('tooltip');
-  function showTip(e, html) {
-    tooltip.style.display = 'block';
-    tooltip.innerHTML = html;
-    moveTip(e);
-  }
-  function moveTip(e) {
-    tooltip.style.left = (e.clientX + 14) + 'px';
-    tooltip.style.top  = (e.clientY - 10) + 'px';
-  }
+  function showTip(e, html) { tooltip.style.display = 'block'; tooltip.innerHTML = html; moveTip(e); }
+  function moveTip(e) { tooltip.style.left = (e.clientX + 14) + 'px'; tooltip.style.top = (e.clientY - 10) + 'px'; }
   function hideTip() { tooltip.style.display = 'none'; }
-  document.addEventListener('mousemove', moveTip);
+  document.addEventListener('mousemove', e => { if (tooltip.style.display === 'block') moveTip(e); });
 
-
-  const filterContainer = document.getElementById('year-filters');
-
-  const allBtn = document.createElement('button');
-  allBtn.className = 'year-btn active';
-  allBtn.textContent = 'All Years';
-  allBtn.addEventListener('click', () => { selectedYear = null; refresh(); });
-  filterContainer.appendChild(allBtn);
-
-  years.forEach(yr => {
-    const btn = document.createElement('button');
-    btn.className = 'year-btn';
-    btn.textContent = yr;
-    btn.addEventListener('click', () => {
-      selectedYear = selectedYear === yr ? null : yr;
-      refresh();
-    });
-    filterContainer.appendChild(btn);
-  });
-
-  function updateButtons() {
-    document.querySelectorAll('.year-btn').forEach(b => {
-      const yr = parseInt(b.textContent);
-      b.classList.toggle('active',
-        isNaN(yr) ? selectedYear === null : yr === selectedYear);
-    });
+  // ---------- helpers ----------
+  function monthOf(d) {
+    const s = String(d.date || '');
+    let parts = s.includes('-') ? s.split('-') : s.split('/');
+    if (parts.length < 2) return null;
+    let m;
+    if (parts[0].length === 4) m = +parts[1];   // YYYY-MM-DD
+    else m = +parts[0];                          // M/D/YYYY
+    return (m >= 1 && m <= 12) ? m : null;
   }
+  const median = arr => { const a = [...arr].sort((x,y)=>x-y); const n=a.length;
+    return n ? (n%2 ? a[(n-1)/2] : (a[n/2-1]+a[n/2])/2) : 0; };
 
-  const MW = 500, MH = 600;
-
-  const mapSvg = d3.select('#map-chart')
-    .append('svg')
-    .attr('viewBox', `0 0 ${MW} ${MH}`)
-    .attr('preserveAspectRatio', 'xMidYMid meet');
-
-  const proj = d3.geoMercator().center([-119.5, 37.4]).scale(2600).translate([MW/2, MH/2]);
-
-  const outlineGroup = mapSvg.append('g');
-  const dotsGroup    = mapSvg.append('g');
-
-  const rScale = d3.scaleSqrt().domain([0, d3.max(RAW_DATA, d => d.acres)]).range([2, 22]);
-
-  fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json')
-    .then(r => r.json())
-    .then(us => {
-      const ca = us.features.find(f => f.properties.name === 'California');
-      if (ca) {
-        outlineGroup.append('path')
-          .datum(ca)
-          .attr('d', d3.geoPath().projection(proj))
-          .attr('class', 'ca-outline');
-      }
-    })
-    .catch(() => {});
-
-  function drawDots() {
-    const visible = selectedYear ? RAW_DATA.filter(d => d.year === selectedYear) : RAW_DATA;
-    const sorted  = [...visible].sort((a, b) => b.acres - a.acres); 
-    dotsGroup.selectAll('.fire-dot').data(sorted, d => d.name + d.year + d.lat).join(
-      enter => enter.append('circle')
-        .attr('class', 'fire-dot')
-        .attr('cx', d => proj([d.lon, d.lat])[0])
-        .attr('cy', d => proj([d.lon, d.lat])[1])
-        .attr('r',  d => rScale(d.acres))
-        .on('mouseover', (e, d) => showTip(e,
-          `<strong>${d.name}</strong><br>${d.county} County, ${d.year}<br>${d.acres.toLocaleString()} acres`))
-        .on('mouseout', hideTip),
-      update => update
-        .attr('cx', d => proj([d.lon, d.lat])[0])
-        .attr('cy', d => proj([d.lon, d.lat])[1])
-        .attr('r',  d => rScale(d.acres)),
-      exit => exit.remove()
-    );
-  }
-
-  // --- Stacked bar chart: acres burned by year and region ---
+  // ---------- regions ----------
   const regionMap = {
     'North Coast': ['Del Norte','Humboldt','Mendocino','Lake','Sonoma','Napa','Marin'],
     'Northern Interior': ['Siskiyou','Modoc','Trinity','Shasta','Lassen','Tehama','Glenn',
@@ -221,138 +378,395 @@ function init() {
       'San Francisco','San Benito','Monterey','San Luis Obispo','Santa Barbara','Ventura'],
     'Southern California': ['Los Angeles','Orange','Riverside','San Bernardino','San Diego','Imperial']
   };
-
   const countyToRegion = {};
-  for (const [region, counties] of Object.entries(regionMap)) {
-    counties.forEach(c => countyToRegion[c] = region);
-  }
-
-  function getRegion(countyStr) {
-    const first = countyStr.split(',')[0].trim();
-    return countyToRegion[first] || 'Other';
-  }
-
+  for (const [region, counties] of Object.entries(regionMap)) counties.forEach(c => countyToRegion[c] = region);
+  function firstCounty(s){ return String(s||'').split(',')[0].trim(); }
+  function getRegion(s){ return countyToRegion[firstCounty(s)] || 'Other'; }
   const regions = Object.keys(regionMap);
-  const regionColors = d3.scaleOrdinal()
-    .domain(regions)
+  const regionColors = d3.scaleOrdinal().domain(regions)
     .range(['#2d6a4f','#e76f51','#264653','#e9c46a','#c1121f']);
 
-  const legendEl = document.getElementById('bar-legend');
+  // ============================================================
+  // CHART A: dual axis — acres bars + count line
+  // ============================================================
+  const perYear = years.map(yr => {
+    const fires = RAW_DATA.filter(d => d.year === yr);
+    return { year: yr, acres: d3.sum(fires, d => d.acres), count: fires.length,
+             med: median(fires.map(d => d.acres)) };
+  });
 
+  (function drawDual() {
+    const W = 720, H = 360, m = { top: 24, right: 64, bottom: 40, left: 70 };
+    const iw = W - m.left - m.right, ih = H - m.top - m.bottom;
+    const svg = d3.select('#dual-chart').append('svg')
+      .attr('viewBox', `0 0 ${W} ${H}`).attr('preserveAspectRatio', 'xMidYMid meet');
+    const g = svg.append('g').attr('transform', `translate(${m.left},${m.top})`);
+
+    const x = d3.scaleBand().domain(years).range([0, iw]).padding(0.25);
+    const yA = d3.scaleLinear().domain([0, d3.max(perYear, d => d.acres)]).nice().range([ih, 0]);
+    const yC = d3.scaleLinear().domain([0, d3.max(perYear, d => d.count)]).nice().range([ih, 0]);
+
+    g.append('g').attr('class', 'grid')
+      .call(d3.axisLeft(yA).ticks(5).tickSize(-iw).tickFormat(''));
+
+    g.selectAll('.acres-bar').data(perYear).join('rect')
+      .attr('class', 'acres-bar')
+      .attr('x', d => x(d.year)).attr('width', x.bandwidth())
+      .attr('y', ih).attr('height', 0)
+      .on('mouseover', (e,d) => showTip(e, `<strong>${d.year}</strong><br>${Math.round(d.acres).toLocaleString()} acres<br>${d.count} fires`))
+      .on('mouseout', hideTip)
+      .transition().duration(800).delay((d,i)=>i*50)
+        .attr('y', d => yA(d.acres)).attr('height', d => ih - yA(d.acres));
+
+    const line = d3.line().x(d => x(d.year) + x.bandwidth()/2).y(d => yC(d.count));
+    const path = g.append('path').datum(perYear).attr('class', 'count-line').attr('d', line);
+    const L = path.node().getTotalLength();
+    path.attr('stroke-dasharray', `${L} ${L}`).attr('stroke-dashoffset', L)
+      .transition().duration(1200).delay(400).attr('stroke-dashoffset', 0);
+
+    g.selectAll('.count-dot').data(perYear).join('circle')
+      .attr('class', 'count-dot')
+      .attr('cx', d => x(d.year) + x.bandwidth()/2).attr('cy', d => yC(d.count)).attr('r', 0)
+      .on('mouseover', (e,d) => showTip(e, `<strong>${d.year}</strong><br>${d.count} fires`))
+      .on('mouseout', hideTip)
+      .transition().duration(400).delay((d,i)=>600+i*50).attr('r', 4);
+
+    g.append('g').attr('class', 'axis').attr('transform', `translate(0,${ih})`)
+      .call(d3.axisBottom(x).tickFormat(d3.format('d')));
+    g.append('g').attr('class', 'axis')
+      .call(d3.axisLeft(yA).ticks(5).tickFormat(d => d>=1e6 ? (d/1e6)+'M' : d>=1e3 ? (d/1e3)+'K' : d));
+    g.append('g').attr('class', 'axis').attr('transform', `translate(${iw},0)`)
+      .call(d3.axisRight(yC).ticks(5));
+
+    svg.append('text').attr('class','axis-label').attr('text-anchor','middle')
+      .attr('transform', `translate(16,${m.top+ih/2}) rotate(-90)`).text('Acres burned');
+    svg.append('text').attr('class','axis-label').attr('text-anchor','middle').attr('fill','#cc3300')
+      .attr('transform', `translate(${W-14},${m.top+ih/2}) rotate(-90)`).text('Number of fires');
+
+    // annotation: record count
+    const annoYear = 2024;
+    const ax = m.left + x(annoYear) + x.bandwidth()/2, ay = m.top + yC(perYear.find(d=>d.year===annoYear).count);
+    svg.append('line').attr('class','anno-line').attr('x1',ax).attr('y1',ay).attr('x2',ax).attr('y2',ay-26);
+    svg.append('text').attr('class','anno').attr('x',ax).attr('y',ay-32).attr('text-anchor','middle').text('record fire count');
+  })();
+
+  // ============================================================
+  // CHART B: concentration
+  // ============================================================
+  (function drawConc() {
+    const sorted = [...RAW_DATA].sort((a,b)=>b.acres-a.acres);
+    const total = d3.sum(sorted, d=>d.acres);
+    const top10 = d3.sum(sorted.slice(0,10), d=>d.acres);
+    const next40 = d3.sum(sorted.slice(10,50), d=>d.acres);
+    const rest = total - top10 - next40;
+    const segs = [
+      { label: 'Top 10 fires', val: top10, color: '#cc3300', n: 10 },
+      { label: 'Next 40 fires', val: next40, color: '#e9886f', n: 40 },
+      { label: `Other ${ (sorted.length-50).toLocaleString() } fires`, val: rest, color: '#f0d6cb', n: sorted.length-50 }
+    ];
+    const W = 720, H = 120, m = { left: 4, right: 4, top: 8, bottom: 44 };
+    const iw = W - m.left - m.right;
+    const svg = d3.select('#conc-chart').append('svg')
+      .attr('viewBox', `0 0 ${W} ${H}`).attr('preserveAspectRatio', 'xMidYMid meet');
+    const g = svg.append('g').attr('transform', `translate(${m.left},${m.top})`);
+    const x = d3.scaleLinear().domain([0, total]).range([0, iw]);
+    let acc = 0;
+    segs.forEach(s => {
+      const x0 = x(acc); acc += s.val; const w = x(acc) - x0;
+      g.append('rect').attr('class','conc-seg').attr('x', x0).attr('y', 0)
+        .attr('width', 0).attr('height', 46).attr('fill', s.color)
+        .on('mouseover', (e)=>showTip(e, `<strong>${s.label}</strong><br>${Math.round(s.val).toLocaleString()} acres<br>${(100*s.val/total).toFixed(0)}% of all burned`))
+        .on('mouseout', hideTip)
+        .transition().duration(900).attr('width', w);
+      const pct = 100*s.val/total;
+      g.append('text').attr('class','conc-label').attr('x', x0 + w/2).attr('y', 70)
+        .attr('text-anchor','middle').attr('fill', s.color).attr('font-weight','700')
+        .attr('opacity',0).text(`${pct.toFixed(0)}%`).transition().delay(700).duration(400).attr('opacity',1);
+      g.append('text').attr('class','conc-label').attr('x', x0 + w/2).attr('y', 86)
+        .attr('text-anchor','middle').attr('fill','#777').attr('opacity',0)
+        .text(s.label).transition().delay(700).duration(400).attr('opacity',1);
+    });
+  })();
+
+  // top fires list
+  (function topFires() {
+    const top = [...RAW_DATA].sort((a,b)=>b.acres-a.acres).slice(0,6);
+    const el = document.getElementById('topfire-list');
+    top.forEach(f => {
+      const row = document.createElement('div'); row.className = 'topfire';
+      const yr = document.createElement('span'); yr.className='yr'; yr.textContent = f.year;
+      const nm = document.createElement('span'); nm.className='nm'; nm.textContent = f.name.replace(/\s*\(.*$/, '');
+      const ac = document.createElement('span'); ac.className='ac'; ac.textContent = Math.round(f.acres).toLocaleString() + ' ac';
+      row.append(yr, nm, ac); el.appendChild(row);
+    });
+  })();
+
+  // ============================================================
+  // CHART B2: beeswarm — every fire by size (the long tail)
+  // ============================================================
+  (function drawBeeswarm() {
+    const W = 720, H = 320, m = { top: 14, right: 24, bottom: 50, left: 24 };
+    const iw = W - m.left - m.right, ih = H - m.top - m.bottom;
+    const svg = d3.select('#beeswarm-chart').append('svg')
+      .attr('viewBox', `0 0 ${W} ${H}`).attr('preserveAspectRatio', 'xMidYMid meet');
+    const g = svg.append('g').attr('transform', `translate(${m.left},${m.top})`);
+
+    const maxAc = d3.max(RAW_DATA, d => d.acres);
+    const x = d3.scaleSqrt().domain([0, maxAc]).range([0, iw]);
+    const r = d3.scaleSqrt().domain([0, maxAc]).range([1.4, 11]);
+
+    const nodes = RAW_DATA.map(d => ({
+      acres: d.acres, name: d.name, year: d.year, county: d.county,
+      region: getRegion(d.county), tx: x(d.acres)
+    }));
+
+    const sim = d3.forceSimulation(nodes)
+      .force('x', d3.forceX(d => d.tx).strength(0.95))
+      .force('y', d3.forceY(ih / 2).strength(0.045))
+      .force('collide', d3.forceCollide(d => r(d.acres) + 0.6))
+      .stop();
+    for (let i = 0; i < 180; i++) sim.tick();
+
+    g.selectAll('circle').data(nodes).join('circle')
+      .attr('class', 'bee')
+      .attr('cx', d => Math.max(0, Math.min(iw, d.x)))
+      .attr('cy', d => Math.max(0, Math.min(ih, d.y)))
+      .attr('r', d => r(d.acres))
+      .attr('fill', d => d.region === 'Other' ? '#b9b9b9' : regionColors(d.region))
+      .attr('opacity', 0.78)
+      .on('mouseover', (e, d) => showTip(e,
+        `<strong>${d.name.replace(/\s*\(.*$/, '')}</strong><br>${d.year} &middot; ${firstCounty(d.county)} County<br>${Math.round(d.acres).toLocaleString()} acres`))
+      .on('mouseout', hideTip);
+
+    const axis = d3.axisBottom(x)
+      .tickValues([0, 1000, 10000, 100000, 500000, 1000000])
+      .tickFormat(d => d >= 1e6 ? (d/1e6)+'M' : d >= 1e3 ? (d/1e3)+'K' : d);
+    g.append('g').attr('class', 'axis').attr('transform', `translate(0,${ih + 8})`).call(axis);
+    svg.append('text').attr('class', 'axis-label').attr('x', W/2).attr('y', H - 6)
+      .attr('text-anchor', 'middle').text('Acres burned per fire (square-root scale) →');
+
+    // annotate the single largest fire, flung to the right
+    const big = nodes.reduce((a, b) => b.acres > a.acres ? b : a, nodes[0]);
+    g.append('text').attr('class', 'anno').attr('text-anchor', 'end')
+      .attr('x', Math.min(iw, big.x) - 14).attr('y', big.y + 3)
+      .attr('fill', '#c01e00').attr('font-weight', '700')
+      .text('August Complex, 1M+ acres →');
+  })();
+
+  // ============================================================
+  // CHART C1: map
+  // ============================================================
+  const filterContainer = document.getElementById('year-filters');
+  const allBtn = document.createElement('button');
+  allBtn.className = 'year-btn active'; allBtn.textContent = 'All';
+  allBtn.addEventListener('click', () => { selectedYear = null; refresh(); });
+  filterContainer.appendChild(allBtn);
+  years.forEach(yr => {
+    const btn = document.createElement('button');
+    btn.className = 'year-btn'; btn.textContent = yr;
+    btn.addEventListener('click', () => { selectedYear = selectedYear === yr ? null : yr; refresh(); });
+    filterContainer.appendChild(btn);
+  });
+  function updateButtons() {
+    document.querySelectorAll('#year-filters .year-btn').forEach(b => {
+      const yr = parseInt(b.textContent);
+      b.classList.toggle('active', isNaN(yr) ? selectedYear === null : yr === selectedYear);
+    });
+  }
+
+  const MW = 460, MH = 560;
+  const mapSvg = d3.select('#map-chart').append('svg')
+    .attr('viewBox', `0 0 ${MW} ${MH}`).attr('preserveAspectRatio', 'xMidYMid meet');
+  const proj = d3.geoMercator().center([-119.5, 37.4]).scale(2400).translate([MW/2, MH/2]);
+
+  // ember radial gradient — makes each fire glow like a live coal
+  const defs = mapSvg.append('defs');
+  const eg = defs.append('radialGradient').attr('id', 'ember')
+    .attr('cx', '50%').attr('cy', '50%').attr('r', '50%');
+  eg.append('stop').attr('offset', '0%').attr('stop-color', '#fff1c2');
+  eg.append('stop').attr('offset', '45%').attr('stop-color', '#ff8a1f');
+  eg.append('stop').attr('offset', '100%').attr('stop-color', '#c01e00');
+
+  const outlineGroup = mapSvg.append('g');
+  const scarGroup = mapSvg.append('g');   // persistent burn scars (under embers)
+  const dotsGroup = mapSvg.append('g');
+  const rScale = d3.scaleSqrt().domain([0, d3.max(RAW_DATA, d => d.acres)]).range([2, 20]);
+
+  function addScar(yr) {
+    const fires = RAW_DATA.filter(d => d.year === yr);
+    scarGroup.selectAll('.scar-y' + yr).data(fires).join('circle')
+      .attr('class', 'scar scar-y' + yr)
+      .attr('cx', d => proj([d.lon, d.lat])[0]).attr('cy', d => proj([d.lon, d.lat])[1])
+      .attr('r', d => rScale(d.acres) * 1.6).attr('fill', '#9c3000').attr('opacity', 0)
+      .transition().duration(350).attr('opacity', 0.28);
+  }
+  function clearScar() { scarGroup.selectAll('*').remove(); }
+
+  fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json')
+    .then(r => r.json())
+    .then(us => {
+      const ca = us.features.find(f => f.properties.name === 'California');
+      if (ca) outlineGroup.append('path').datum(ca)
+        .attr('d', d3.geoPath().projection(proj)).attr('class', 'ca-outline');
+    }).catch(()=>{});
+
+  function drawDots() {
+    const visible = selectedYear ? RAW_DATA.filter(d => d.year === selectedYear) : RAW_DATA;
+    const sorted = [...visible].sort((a,b)=>b.acres-a.acres);
+    dotsGroup.selectAll('.fire-dot').data(sorted, d => d.name + d.year + d.lat).join(
+      enter => enter.append('circle').attr('class', 'fire-dot').attr('fill', 'url(#ember)')
+        .attr('cx', d => proj([d.lon, d.lat])[0]).attr('cy', d => proj([d.lon, d.lat])[1])
+        .attr('r', d => rScale(d.acres))
+        .on('mouseover', (e,d) => showTip(e,
+          `<strong>${d.name}</strong><br>${firstCounty(d.county)} County, ${d.year}<br>${d.acres.toLocaleString()} acres`))
+        .on('mouseout', hideTip),
+      update => update.attr('cx', d => proj([d.lon, d.lat])[0]).attr('cy', d => proj([d.lon, d.lat])[1])
+        .attr('r', d => rScale(d.acres)),
+      exit => exit.remove()
+    );
+  }
+
+  // ============================================================
+  // CHART C2: stacked region bar
+  // ============================================================
+  const legendEl = document.getElementById('bar-legend');
   fetch('https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/california-counties.geojson')
     .then(r => r.json())
     .then(caCounties => {
-      const miniW = 40, miniH = 55;
-      const miniProj = d3.geoMercator().center([-119.5, 37.4]).scale(210).translate([miniW/2, miniH/2]);
+      const miniW = 36, miniH = 50;
+      const miniProj = d3.geoMercator().center([-119.5, 37.4]).scale(190).translate([miniW/2, miniH/2]);
       const miniPath = d3.geoPath().projection(miniProj);
-
       regions.forEach(r => {
-        const item = document.createElement('div');
-        item.className = 'legend-item';
-
-        const svg = d3.select(item).append('svg')
-          .attr('width', miniW).attr('height', miniH);
-
-        svg.selectAll('.bg')
-          .data(caCounties.features)
-          .join('path')
-          .attr('d', miniPath)
-          .attr('fill', '#eee')
-          .attr('stroke', '#ccc')
-          .attr('stroke-width', 0.3);
-
+        const item = document.createElement('div'); item.className = 'legend-item';
+        const svg = d3.select(item).append('svg').attr('width', miniW).attr('height', miniH);
+        svg.selectAll('.bg').data(caCounties.features).join('path')
+          .attr('d', miniPath).attr('fill', '#eee').attr('stroke', '#ccc').attr('stroke-width', 0.3);
         const rCounties = regionMap[r];
-        svg.selectAll('.hl')
-          .data(caCounties.features.filter(f => rCounties.includes(f.properties.name)))
-          .join('path')
-          .attr('d', miniPath)
-          .attr('fill', regionColors(r))
-          .attr('stroke', '#fff')
-          .attr('stroke-width', 0.3);
-
-        const label = document.createElement('span');
-        label.textContent = r;
-        item.appendChild(label);
+        svg.selectAll('.hl').data(caCounties.features.filter(f => rCounties.includes(f.properties.name)))
+          .join('path').attr('d', miniPath).attr('fill', regionColors(r)).attr('stroke', '#fff').attr('stroke-width', 0.3);
+        const label = document.createElement('span'); label.textContent = r; item.appendChild(label);
         legendEl.appendChild(item);
       });
-    });
+    }).catch(()=>{});
 
   const stackData = years.map(yr => {
-    const row = { year: yr };
-    regions.forEach(r => row[r] = 0);
-    RAW_DATA.filter(d => d.year === yr).forEach(d => {
-      const r = getRegion(d.county);
-      if (row[r] !== undefined) row[r] += d.acres;
-    });
+    const row = { year: yr }; regions.forEach(r => row[r] = 0);
+    RAW_DATA.filter(d => d.year === yr).forEach(d => { const r = getRegion(d.county); if (row[r] !== undefined) row[r] += d.acres; });
     return row;
   });
+  const series = d3.stack().keys(regions)(stackData);
 
-  const stack = d3.stack().keys(regions);
-  const series = stack(stackData);
+  const BW = 460, BH = 360, bM = { top: 16, right: 14, bottom: 40, left: 60 };
+  const biw = BW - bM.left - bM.right, bih = BH - bM.top - bM.bottom;
+  const barSvg = d3.select('#bar-chart').append('svg')
+    .attr('viewBox', `0 0 ${BW} ${BH}`).attr('preserveAspectRatio', 'xMidYMid meet');
+  const barG = barSvg.append('g').attr('transform', `translate(${bM.left},${bM.top})`);
+  const xBar = d3.scaleBand().domain(years).range([0, biw]).padding(0.2);
+  const yMax = d3.max(stackData, d => regions.reduce((s,r)=>s+d[r], 0));
+  const yBar = d3.scaleLinear().domain([0, yMax]).nice().range([bih, 0]);
 
-  const BW = 700, BH = 320;
-  const bMargin = { top: 20, right: 20, bottom: 40, left: 80 };
-  const bInnerW = BW - bMargin.left - bMargin.right;
-  const bInnerH = BH - bMargin.top - bMargin.bottom;
+  barG.append('g').attr('class', 'axis').attr('transform', `translate(0,${bih})`)
+    .call(d3.axisBottom(xBar).tickFormat(d3.format('d'))).selectAll('text')
+    .attr('transform','rotate(-45)').attr('text-anchor','end');
+  barG.append('g').attr('class', 'axis')
+    .call(d3.axisLeft(yBar).ticks(5).tickFormat(d => d>=1e6 ? (d/1e6)+'M' : d>=1e3 ? (d/1e3)+'K' : d));
 
-  const barSvg = d3.select('#bar-chart')
-    .append('svg')
-    .attr('viewBox', `0 0 ${BW} ${BH}`)
-    .attr('preserveAspectRatio', 'xMidYMid meet');
-
-  const barG = barSvg.append('g')
-    .attr('transform', `translate(${bMargin.left},${bMargin.top})`);
-
-  const xBar = d3.scaleBand().domain(years).range([0, bInnerW]).padding(0.2);
-  const yMax = d3.max(stackData, d => regions.reduce((s, r) => s + d[r], 0));
-  const yBar = d3.scaleLinear().domain([0, yMax]).nice().range([bInnerH, 0]);
-
-  barG.append('g')
-    .attr('class', 'axis')
-    .attr('transform', `translate(0,${bInnerH})`)
-    .call(d3.axisBottom(xBar).tickFormat(d3.format('d')));
-
-  barG.append('g')
-    .attr('class', 'axis')
-    .call(d3.axisLeft(yBar).ticks(5).tickFormat(d => d >= 1e6 ? (d/1e6)+'M' : d >= 1e3 ? (d/1e3)+'K' : d));
-
-  barG.selectAll('g.series')
-    .data(series)
-    .join('g')
-    .attr('class', 'series')
+  barG.selectAll('g.series').data(series).join('g').attr('class','series')
     .attr('fill', d => regionColors(d.key))
-    .selectAll('rect')
-    .data(d => d.map(seg => ({ ...seg, region: d.key })))
-    .join('rect')
+    .selectAll('rect').data(d => d.map(seg => ({ ...seg, region: d.key }))).join('rect')
     .attr('class', 'stacked-bar')
-    .attr('x', d => xBar(d.data.year))
-    .attr('y', d => yBar(d[1]))
-    .attr('height', d => yBar(d[0]) - yBar(d[1]))
-    .attr('width', xBar.bandwidth())
-    .on('click', (e, d) => {
-      selectedYear = selectedYear === d.data.year ? null : d.data.year;
-      refresh();
-    })
-    .on('mouseover', (e, d) => {
-      const acres = d[1] - d[0];
-      const total = regions.reduce((s, r) => s + d.data[r], 0);
-      showTip(e, `<strong>${d.data.year} — ${d.region}</strong><br>${Math.round(acres).toLocaleString()} acres<br>${total.toLocaleString()} total`);
+    .attr('x', d => xBar(d.data.year)).attr('width', xBar.bandwidth())
+    .attr('y', d => yBar(d[1])).attr('height', d => yBar(d[0]) - yBar(d[1]))
+    .on('click', (e,d) => { selectedYear = selectedYear === d.data.year ? null : d.data.year; refresh(); })
+    .on('mouseover', (e,d) => {
+      const acres = d[1]-d[0]; const total = regions.reduce((s,r)=>s+d.data[r], 0);
+      showTip(e, `<strong>${d.data.year} &middot; ${d.region}</strong><br>${Math.round(acres).toLocaleString()} acres<br>${Math.round(total).toLocaleString()} total`);
     })
     .on('mouseout', hideTip);
 
   function updateBars() {
     barG.selectAll('.stacked-bar')
-      .attr('opacity', d => selectedYear === null || d.data.year === selectedYear ? 0.85 : 0.25);
+      .attr('opacity', d => selectedYear === null || d.data.year === selectedYear ? 0.88 : 0.22);
   }
 
-  function refresh() {
-    updateButtons();
-    drawDots();
-    updateBars();
-  }
+  // ============================================================
+  // CHART C3: seasonality heatmap
+  // ============================================================
+  (function drawSeason() {
+    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const cells = [];
+    years.forEach(y => { for (let m=1;m<=12;m++) cells.push({ year:y, month:m, acres:0 }); });
+    const idx = {}; cells.forEach(c => idx[c.year+'-'+c.month] = c);
+    RAW_DATA.forEach(d => { const m = monthOf(d); if (m && idx[d.year+'-'+m]) idx[d.year+'-'+m].acres += d.acres; });
 
-  drawDots();
+    const W = 720, H = 300, m = { top: 16, right: 14, bottom: 24, left: 48 };
+    const iw = W-m.left-m.right, ih = H-m.top-m.bottom;
+    const svg = d3.select('#season-chart').append('svg')
+      .attr('viewBox', `0 0 ${W} ${H}`).attr('preserveAspectRatio','xMidYMid meet');
+    const g = svg.append('g').attr('transform', `translate(${m.left},${m.top})`);
+    const x = d3.scaleBand().domain(d3.range(1,13)).range([0,iw]).padding(0.08);
+    const y = d3.scaleBand().domain(years).range([0,ih]).padding(0.08);
+    const color = d3.scaleSequential(d3.interpolateYlOrRd)
+      .domain([0, Math.sqrt(d3.max(cells, c=>c.acres))]);
+
+    g.selectAll('rect').data(cells).join('rect')
+      .attr('class', c => 'cell' + (c.year===2025 && c.month===1 ? ' flag' : ''))
+      .attr('x', c=>x(c.month)).attr('y', c=>y(c.year))
+      .attr('width', x.bandwidth()).attr('height', y.bandwidth())
+      .attr('fill', c => c.acres>0 ? color(Math.sqrt(c.acres)) : '#f5f5f5')
+      .on('mouseover', (e,c)=>showTip(e, `<strong>${monthNames[c.month-1]} ${c.year}</strong><br>${Math.round(c.acres).toLocaleString()} acres`))
+      .on('mouseout', hideTip);
+
+    g.append('g').attr('class','axis').attr('transform',`translate(0,${ih})`)
+      .call(d3.axisBottom(x).tickFormat(d=>monthNames[d-1]));
+    g.append('g').attr('class','axis').call(d3.axisLeft(y).tickFormat(d3.format('d')));
+
+    // annotation arrow to Jan 2025
+    const cx = m.left + x(1) + x.bandwidth()/2, cy = m.top + y(2025) + y.bandwidth()/2;
+    svg.append('text').attr('class','anno').attr('x', cx + x.bandwidth()).attr('y', cy+4)
+      .attr('fill','#cc3300').attr('font-weight','700').text('← LA fires, January 2025');
+  })();
+
+  // ============================================================
+  // refresh + play
+  // ============================================================
+  function refresh() { updateButtons(); drawDots(); updateBars(); }
+  drawDots(); updateBars();
+
+  let playTimer = null;
+  const playBtn = document.getElementById('play-btn');
+  playBtn.addEventListener('click', () => {
+    if (playTimer) { clearInterval(playTimer); playTimer = null; playBtn.innerHTML = '&#9654; Play 2015&ndash;2025'; return; }
+    playBtn.innerHTML = '&#9632; Stop';
+    clearScar();
+    let i = 0;
+    selectedYear = years[0]; refresh(); addScar(years[0]);
+    playTimer = setInterval(() => {
+      i++;
+      if (i >= years.length) {
+        clearInterval(playTimer); playTimer = null;
+        // final frame: show the full decade of embers over the cumulative burn scar
+        selectedYear = null; refresh();
+        playBtn.innerHTML = '&#9654; Replay 2015&ndash;2025';
+        return;
+      }
+      selectedYear = years[i]; refresh(); addScar(years[i]);
+    }, 900);
+  });
 }
+
+// ---------- scrollytelling reveal (graceful) ----------
+(function reveal() {
+  const steps = document.querySelectorAll('.step');
+  function showAll() { steps.forEach(s => s.classList.add('in-view')); }
+  if (!('IntersectionObserver' in window)) { showAll(); return; }
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(en => { if (en.isIntersecting) { en.target.classList.add('in-view'); obs.unobserve(en.target); } });
+  }, { threshold: 0.12 });
+  steps.forEach(s => obs.observe(s));
+  // failsafe: never leave content hidden during a recording
+  setTimeout(showAll, 2500);
+})();
 </script>
 </body>
 </html>
