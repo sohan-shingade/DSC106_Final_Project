@@ -3,291 +3,320 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Shrinking Fire — Rethinking California Wildfire Risk</title>
+<title>THE SHRINKING FIRE</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,200;0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg:    #120c0a;   /* warm near-black */
-    --bg2:   #1a120e;   /* raised ground   */
-    --ink:   #f3ece0;   /* headings        */
-    --body:  #d8ccbb;   /* paragraph text  */
-    --muted: #8d8073;   /* captions        */
-    --ember: #ef5a26;   /* the one accent  */
-    --ember-soft: #c2693c;
-    --hair:  #2c211a;   /* hairline rules  */
-    --serif: 'Newsreader', Georgia, serif;
-    --sans:  'Archivo', -apple-system, system-ui, sans-serif;
+    --ink:   #1a1208;
+    --ash:   #ece4d6;
+    --ember: #ff5a1f;
+    --hot:   #ffc63d;
+    --blood: #9e1b0b;
+    --char:  #0c0907;
+    --plate: #110c08;
+    --display:'Anton', Impact, sans-serif;
+    --text:  'Newsreader', Georgia, serif;
+    --mono:  'IBM Plex Mono', ui-monospace, monospace;
   }
   * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
+  html { -webkit-text-size-adjust: 100%; }
   body {
-    font-family: var(--serif);
-    margin: 0; padding: 0 0 14vh;
-    background: var(--bg);
-    color: var(--body);
+    margin: 0; overflow-x: hidden; color: var(--ink);
+    font-family: var(--text);
+    /* the page ignites top→bottom */
+    background:
+      linear-gradient(180deg,
+        #ece4d6 0%, #ecdcbf 14%, #efc873 26%,
+        #efb24e 34%, #e9852b 46%, #e2611d 56%,
+        #c43113 66%, #9e1b0b 74%, #4a160a 84%, #150a06 93%, #0c0907 100%);
     -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
   }
-  ::selection { background: var(--ember); color: #fff; }
+  ::selection { background: var(--ember); color: #120a05; }
 
-  /* ---------- layout rails ---------- */
-  .col  { max-width: 640px;  margin: 0 auto; padding: 0 24px; }
-  .wide { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
-  section { margin: clamp(80px, 13vh, 160px) 0; }
+  .sheet { max-width: 1180px; margin: 0 auto; padding: 0 clamp(18px, 5vw, 64px); position: relative; }
 
-  /* ---------- type ---------- */
-  h1 {
-    font-weight: 400; font-size: clamp(52px, 9vw, 104px); line-height: 0.96;
-    letter-spacing: -0.022em; color: var(--ink); margin: 0;
-  }
-  h2 {
-    font-weight: 400; font-size: clamp(30px, 4.6vw, 46px); line-height: 1.08;
-    letter-spacing: -0.015em; color: var(--ink); margin: 0 0 18px; max-width: 18ch;
-  }
-  h3 { font-weight: 500; font-size: 20px; color: var(--ink); margin: 30px 0 8px; }
-  p  { font-size: clamp(17px, 1.35vw, 19px); line-height: 1.74; margin: 0 0 22px; color: var(--body); }
-  p b, p strong { color: var(--ink); font-weight: 500; }
-  em { font-style: italic; }
-  a  { color: var(--ember); text-underline-offset: 3px; }
+  /* zones: text color flips as the page chars */
+  .light { color: #fff2e4; }
+  .light .quietc { color: #d9b9a0; }
+  .light .figcap { color: #e9c2a6; }
+  .light h2, .light .verdict { color: #fff; }
 
-  .kicker {
-    font-family: var(--sans); font-weight: 600; font-size: 12px;
-    letter-spacing: 0.2em; text-transform: uppercase; color: var(--ember);
-    display: inline-flex; align-items: center; gap: 12px; margin: 0 0 22px;
+  /* ---------- folio ---------- */
+  .folio {
+    border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink);
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 8px 0; display: flex; justify-content: space-between; gap: 14px; font-weight: 600;
   }
-  .kicker::after { content: ''; width: 42px; height: 2px; background: var(--ember); opacity: .8; }
 
-  /* ---------- hero ---------- */
-  .hero { padding-top: clamp(64px, 16vh, 150px); }
-  .dek {
-    font-weight: 300; font-size: clamp(23px, 3.2vw, 34px); line-height: 1.34;
-    color: var(--ink); margin: 28px 0 0; max-width: 24ch;
+  /* ---------- masthead ---------- */
+  .masthead { padding: clamp(40px,8vh,90px) 0 clamp(30px,5vh,60px); }
+  .title { font-family: var(--display); line-height: 0.78; margin: 0; text-transform: uppercase; }
+  .t-the   { display: block; font-size: clamp(28px, 6vw, 76px); letter-spacing: .12em; color: var(--ink); margin-left: .15em; }
+  .t-shrink{ display: block; white-space: nowrap; color: var(--ink); }
+  .t-shrink span { display: inline-block; line-height: .8; vertical-align: bottom; }
+  .t-fire  {
+    display: block; font-size: clamp(120px, 33vw, 440px); color: var(--ember);
+    letter-spacing: -0.02em; margin-top: -.06em;
+    text-shadow: 0 0 38px rgba(255,90,31,.55), 0 0 8px rgba(255,200,60,.5);
+    animation: flicker 4.5s infinite;
   }
-  .dek .accent { color: var(--ember); font-style: italic; }
-  .byline {
-    font-family: var(--sans); font-weight: 500; font-size: 13px; letter-spacing: .02em;
-    color: var(--muted); margin: 40px 0 0; line-height: 1.7;
+  @keyframes flicker {
+    0%,100%{ opacity:1 } 47%{ opacity:1 } 48%{ opacity:.82 } 49%{ opacity:1 }
+    72%{ opacity:1 } 73%{ opacity:.7 } 74%{ opacity:1 } 88%{ opacity:.88 } 89%{ opacity:1 }
   }
-  .scrollcue {
-    font-family: var(--sans); font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
-    color: var(--muted); margin-top: 64px; display: flex; align-items: center; gap: 10px;
-  }
-  .scrollcue::before { content: ''; width: 1px; height: 34px; background: var(--hair); }
+  @media (prefers-reduced-motion: reduce){ .t-fire{ animation: none } }
 
-  /* ---------- scroll reveal ---------- */
-  .step { opacity: 0; transform: translateY(20px); transition: opacity .8s ease, transform .8s cubic-bezier(.2,.7,.2,1); }
-  .step.in-view { opacity: 1; transform: none; }
-  @media (prefers-reduced-motion: reduce) { .step { opacity: 1; transform: none; transition: none; } }
-
-  /* ---------- figures (no cards — editorial blocks) ---------- */
-  .fig { margin: clamp(34px, 5vw, 60px) 0; border-top: 1px solid var(--hair); padding-top: 16px; }
-  .fig .label {
-    font-family: var(--sans); font-weight: 600; font-size: 12.5px; letter-spacing: .08em;
-    text-transform: uppercase; color: var(--ember); margin: 0 0 4px;
+  .standfirst {
+    font-family: var(--text); font-weight: 300; font-size: clamp(22px, 3vw, 38px); line-height: 1.28;
+    max-width: 22ch; margin: clamp(26px,5vh,52px) 0 0;
   }
-  .fig .note { font-family: var(--sans); font-weight: 500; font-size: 13.5px; line-height: 1.5;
-               color: var(--muted); margin: 0 0 18px; max-width: 64ch; }
+  .standfirst .hot { color: var(--blood); font-style: italic; font-weight: 400; }
+  .dateline {
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase;
+    color: #6c5b46; margin-top: 26px; line-height: 1.8;
+  }
+
+  /* ---------- scorch divider ---------- */
+  .scorch { height: 26px; background: var(--ink); margin: clamp(40px,7vh,80px) 0;
+    clip-path: polygon(0 38%,4% 60%,8% 30%,13% 70%,17% 40%,22% 75%,27% 35%,32% 64%,37% 28%,
+      43% 72%,48% 42%,53% 78%,58% 33%,63% 66%,68% 30%,74% 74%,79% 44%,84% 70%,89% 32%,94% 62%,100% 40%,100% 100%,0 100%); }
+  .light .scorch { background: var(--ember); }
+
+  /* ---------- the erratic grid ---------- */
+  .blk { position: relative; margin: clamp(46px,8vh,100px) 0; }
+  .ghost {
+    position: absolute; font-family: var(--display); line-height: .7; pointer-events: none;
+    color: transparent; -webkit-text-stroke: 2px rgba(26,18,8,.16); z-index: 0; user-select: none;
+  }
+  .light .ghost { -webkit-text-stroke-color: rgba(255,120,60,.22); }
+  .blk > * { position: relative; z-index: 1; }
+
+  .mark { font-family: var(--mono); font-weight: 600; font-size: 12px; letter-spacing: .12em;
+          text-transform: uppercase; color: var(--ember); }
+  h2 { font-family: var(--display); text-transform: uppercase; line-height: .9; letter-spacing: -0.005em;
+       font-size: clamp(38px, 7.5vw, 104px); margin: 6px 0 22px; max-width: 16ch; color: var(--ink); }
+  .blk p { font-family: var(--text); font-size: clamp(17px,1.35vw,20px); line-height: 1.65; max-width: 56ch; margin: 0 0 20px; }
+  .blk p strong { font-weight: 500; }
+  .indent { margin-left: clamp(0px, 14vw, 220px); }
+  .alignr { text-align: right; }
+  .alignr h2, .alignr p { margin-left: auto; }
+
+  .verdict { font-family: var(--text); font-style: italic; font-weight: 300;
+             font-size: clamp(24px,3.4vw,46px); line-height: 1.22; max-width: 20ch; }
+  .verdict.r { margin-left: auto; text-align: right; }
+
+  /* gigantic bleed numbers */
+  .blast { font-family: var(--display); line-height: .76; color: var(--ember);
+           font-size: clamp(110px, 26vw, 340px); letter-spacing: -0.03em; margin: 0; }
+  .blast.stroke { color: transparent; -webkit-text-stroke: 3px var(--ember); }
+  .blast small { font-size: .26em; display: block; font-family: var(--mono); letter-spacing: .04em;
+                 color: inherit; -webkit-text-stroke: 0; line-height: 1.3; }
+  .bleedL { margin-left: clamp(-60px,-6vw,-30px); }
+
+  /* ---------- figure plates (taped in, askew) ---------- */
+  .plate-fig { margin: clamp(40px,7vh,92px) 0; }
+  .fighead { font-family: var(--mono); font-size: 12px; letter-spacing: .04em; margin-bottom: 12px;
+             display: flex; gap: 14px; align-items: baseline; }
+  .fighead .figtag { font-weight: 600; text-transform: uppercase; color: var(--ember);
+                     border: 1.5px solid var(--ember); padding: 2px 7px; }
+  .figcap { font-family: var(--text); font-style: italic; font-size: clamp(13px,1.1vw,15px); color: #6c5b46; max-width: 56ch; }
+  .plate { background: var(--plate); border: 1px solid rgba(0,0,0,.5); padding: clamp(16px,3vw,32px);
+           box-shadow: 0 26px 60px rgba(0,0,0,.4); }
+  .tilt1 { transform: rotate(-1.4deg); } .tilt2 { transform: rotate(1deg); }
+  .tilt3 { transform: rotate(-0.7deg); }
   svg { width: 100%; height: auto; display: block; }
 
-  /* ---------- chart skins (dark) ---------- */
-  .axis text { font-family: var(--sans); font-size: 12px; fill: #9a8d7d; }
-  .axis line, .axis path { stroke: #3a2e26; }
-  .grid line { stroke: #241b16; }
-  .grid path { stroke: none; }
-  .axis-label { font-family: var(--sans); font-size: 12px; fill: #9a8d7d; font-weight: 600; }
-  .anno { font-family: var(--sans); font-size: 12px; fill: var(--body); }
-  .anno-line { stroke: #5f5044; stroke-width: 1; stroke-dasharray: 3 2; }
-
-  .acres-bar  { fill: #9c6b3f; }
-  .count-line { fill: none; stroke: var(--ember); stroke-width: 3; }
-  .count-dot  { fill: var(--ember); }
-
-  .conc-seg { stroke: var(--bg); stroke-width: 2; }
-  .conc-label { font-family: var(--sans); font-size: 13px; }
-
+  /* chart skins (always on dark plate) */
+  .axis text { font-family: var(--mono); font-size: 11px; fill: #9a8d7a; }
+  .axis line, .axis path { stroke: #3a2e24; }
+  .grid line { stroke: #241b14; } .grid path { stroke: none; }
+  .axis-label { font-family: var(--mono); font-size: 11px; fill: #9a8d7a; letter-spacing: .03em; }
+  .anno { font-family: var(--mono); font-size: 11px; fill: #cdbfa9; }
+  .anno-line { stroke: #5f5040; stroke-width: 1; stroke-dasharray: 3 2; }
+  .acres-bar { fill: #9c6b3f; }
+  .count-line { fill: none; stroke: #ff5a1f; stroke-width: 3; }
+  .count-dot  { fill: #ff5a1f; }
+  .conc-seg { stroke: var(--plate); stroke-width: 2; }
+  .conc-label { font-family: var(--mono); font-size: 12px; }
   .bee { cursor: pointer; }
-
-  /* concentration / top fires list */
-  .topfire { display: flex; justify-content: space-between; align-items: baseline;
-             font-family: var(--sans); font-size: 15px; padding: 11px 0; border-bottom: 1px solid var(--hair); }
-  .topfire .yr { color: var(--muted); width: 52px; font-variant-numeric: tabular-nums; }
-  .topfire .nm { flex: 1; color: var(--ink); }
-  .topfire .ac { color: var(--ember); font-weight: 600; font-variant-numeric: tabular-nums; }
-
-  /* pull-stats */
-  .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px;
-              border-top: 1px solid var(--hair); padding-top: 26px; margin: 40px 0; }
-  @media (max-width: 620px) { .stat-row { grid-template-columns: 1fr; gap: 22px; } }
-  .stat .num { font-family: var(--serif); font-weight: 400; font-size: clamp(38px, 5.5vw, 58px);
-               line-height: 1; color: var(--ember); letter-spacing: -0.01em; }
-  .stat .lbl { font-family: var(--sans); font-weight: 500; font-size: 13px; line-height: 1.45;
-               color: var(--muted); margin-top: 12px; max-width: 22ch; }
-
-  /* aside / "so far" */
-  .aside { border-left: 2px solid var(--ember); padding: 4px 0 4px 22px; margin: 40px 0; max-width: 34em; }
-  .aside .k { font-family: var(--sans); font-weight: 600; font-size: 11px; letter-spacing: .16em;
-              text-transform: uppercase; color: var(--ember); }
-  .aside p { font-style: italic; font-size: clamp(19px, 2.2vw, 23px); line-height: 1.45; color: var(--ink); margin: 8px 0 0; }
-
-  /* ---------- map + region ---------- */
-  .controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
-  .year-filters { display: flex; gap: 6px; flex-wrap: wrap; }
-  .year-btn {
-    padding: 5px 11px; font-family: var(--sans); font-size: 12.5px; font-weight: 500;
-    border: 1px solid #4a3a2e; background: transparent; color: var(--body);
-    cursor: pointer; border-radius: 2px; transition: background .15s, border-color .15s;
-  }
-  .year-btn:hover { background: #211610; border-color: #6a5343; }
-  .year-btn.active { background: var(--ember); color: #1a0f08; border-color: var(--ember); font-weight: 600; }
-  .play-btn {
-    padding: 7px 16px; font-family: var(--sans); font-size: 12.5px; font-weight: 600;
-    border: none; border-radius: 2px; background: var(--ember); color: #1a0f08; cursor: pointer;
-  }
-  .play-btn:hover { background: #ff6b35; }
-
-  .map-wrap { display: grid; grid-template-columns: 1.05fr 1fr; gap: 28px; align-items: start; }
-  @media (max-width: 760px) { .map-wrap { grid-template-columns: 1fr; gap: 36px; } }
-  .map-wrap .sub { font-family: var(--sans); font-weight: 600; font-size: 13px; color: var(--ink); margin: 0 0 2px; }
-  .map-wrap .subnote { font-family: var(--sans); font-size: 12.5px; color: var(--muted); margin: 0 0 12px; }
-  .ca-outline { fill: #221710; stroke: #3c2c22; stroke-width: 1px; }
   .fire-dot { opacity: 0.72; cursor: pointer; }
   .fire-dot:hover { opacity: 1; stroke: #fff; stroke-width: 0.5px; }
   .scar { pointer-events: none; }
+  .ca-outline { fill: #241910; stroke: #3d2c20; stroke-width: 1px; }
   .stacked-bar { opacity: 0.9; cursor: pointer; }
-  .stacked-bar:hover { opacity: 1; stroke: var(--ink); stroke-width: 0.5px; }
+  .stacked-bar:hover { opacity: 1; stroke: #e9dfce; stroke-width: 0.5px; }
 
-  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 22px; justify-content: center; align-items: flex-start; }
-  .legend-item { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 110px;
-                 text-align: center; font-family: var(--sans); font-size: 11px; line-height: 1.25; color: var(--muted); }
+  /* ledger (biggest fires) — on page, not plate */
+  .ledger .topfire { display: grid; grid-template-columns: 56px 1fr auto; gap: 16px; align-items: baseline;
+                     padding: 12px 0; border-bottom: 1px solid rgba(26,18,8,.28); }
+  .light .ledger .topfire { border-bottom-color: rgba(255,120,60,.3); }
+  .ledger .topfire:first-of-type { border-top: 2px solid currentColor; }
+  .ledger .yr { font-family: var(--mono); font-size: 13px; opacity: .65; }
+  .ledger .nm { font-family: var(--display); text-transform: uppercase; font-size: clamp(18px,2.4vw,30px); letter-spacing: .01em; }
+  .ledger .ac { font-family: var(--mono); font-size: 14px; color: var(--ember); font-variant-numeric: tabular-nums; }
+
+  /* data table */
+  table.data { width: 100%; border-collapse: collapse; font-family: var(--mono); }
+  table.data th, table.data td { padding: 13px 10px; text-align: left; }
+  table.data thead th { font-weight: 600; font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase;
+                        opacity: .7; border-bottom: 2px solid currentColor; }
+  table.data tbody td { font-size: 15px; border-bottom: 1px solid rgba(26,18,8,.22); }
+  .light table.data tbody td { border-bottom-color: rgba(255,120,60,.25); }
+  table.data tbody tr:last-child td { border-bottom: 2px solid currentColor; }
+  table.data td:first-child, table.data th:first-child { font-family: var(--text); font-size: 17px; padding-left: 0; }
+  table.data .n { text-align: right; font-variant-numeric: tabular-nums; }
+  table.data .chg { color: var(--ember); font-weight: 600; }
+
+  /* map plate internals */
+  .controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+  .year-filters { display: flex; gap: 6px; flex-wrap: wrap; }
+  .year-btn { padding: 5px 11px; font-family: var(--mono); font-size: 12px; border: 1px solid #4a3a2c;
+              background: transparent; color: #cdbfa9; cursor: pointer; }
+  .year-btn:hover { background: #221710; border-color: #6a5340; }
+  .year-btn.active { background: #ff5a1f; color: #1a0f08; border-color: #ff5a1f; font-weight: 600; }
+  .play-btn { padding: 7px 15px; font-family: var(--mono); font-size: 12px; font-weight: 600; border: none;
+              background: #ff5a1f; color: #1a0f08; cursor: pointer; }
+  .play-btn:hover { background: #ff6b35; }
+  .map-wrap { display: grid; grid-template-columns: 1.05fr 1fr; gap: 30px; align-items: start; }
+  @media (max-width: 760px) { .map-wrap { grid-template-columns: 1fr; gap: 34px; } }
+  .map-wrap .sub { font-family: var(--mono); font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: #cdbfa9; margin: 0 0 2px; }
+  .map-wrap .subnote { font-family: var(--text); font-style: italic; font-size: 13.5px; color: #8e8270; margin: 0 0 14px; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 22px; align-items: flex-start; }
+  .legend-item { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 104px;
+                 text-align: center; font-family: var(--mono); font-size: 10.5px; line-height: 1.3; color: #9a8d7a; }
   .legend-item svg { display: block; }
-
   #spiral-chart { display: flex; justify-content: center; }
   #spiral-chart svg { max-width: 560px; }
 
-  .tooltip {
-    position: fixed; background: #fbf6ee; color: #1a120d; padding: 9px 13px; border-radius: 4px;
-    font-family: var(--sans); font-size: 13px; pointer-events: none; display: none; line-height: 1.5;
-    max-width: 230px; z-index: 50; box-shadow: 0 8px 30px rgba(0,0,0,.5);
-  }
-  .tooltip strong { color: #000; }
+  .tooltip { position: fixed; background: #faf4e9; color: #1a120d; padding: 9px 13px; font-family: var(--mono);
+             font-size: 12.5px; pointer-events: none; display: none; line-height: 1.5; max-width: 230px; z-index: 50;
+             border: 1px solid #1a120d; }
+  .tooltip strong { font-family: var(--text); font-size: 14px; }
 
-  /* ---------- closing ---------- */
-  .closing { background: var(--bg2); border-top: 1px solid var(--hair); border-bottom: 1px solid var(--hair); }
-  .closing .col { padding-top: clamp(64px,10vh,110px); padding-bottom: clamp(64px,10vh,110px); }
-  .closing h2 { color: var(--ember); }
-  .closing p { font-size: clamp(20px, 2.6vw, 27px); line-height: 1.5; color: var(--ink); font-weight: 300; }
+  .videoframe { background: var(--plate); border: 1px solid rgba(0,0,0,.5); padding: 48px; text-align: center;
+                font-family: var(--mono); font-size: 12.5px; color: #8e8270; }
 
-  .video .frame {
-    border: 1px solid var(--hair); border-radius: 6px; padding: 40px; text-align: center;
-    color: var(--muted); font-family: var(--sans); font-size: 14px; background: var(--bg2);
-  }
-  .video .frame iframe { width: 100%; aspect-ratio: 16/9; border: 0; border-radius: 6px; }
+  /* colophon */
+  .colophon { padding-bottom: clamp(60px,12vh,120px); }
+  .colophon dl { columns: 2; font-family: var(--mono); }
+  .colophon dt { font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--ember); margin-top: 14px; }
+  .colophon dd { font-family: var(--text); font-size: 15px; margin: 2px 0 0; }
+  .colophon .body p { font-family: var(--text); font-size: 15px; line-height: 1.6; max-width: 60ch; margin: 0 0 14px; }
 
-  footer { font-family: var(--sans); font-size: 12.5px; color: var(--muted); line-height: 1.7; }
-  footer .rule { height: 1px; background: var(--hair); margin-bottom: 22px; }
+  .step { opacity: 0; transform: translateY(18px); transition: opacity .7s ease, transform .7s cubic-bezier(.2,.7,.2,1); }
+  .step.in-view { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce){ .step { opacity: 1; transform: none; transition: none; } }
 </style>
 </head>
 <body>
 
-<!-- ============ HERO ============ -->
-<header class="hero col">
-  <div class="kicker">DSC 106 · California Wildfire</div>
-  <h1>The<br>Shrinking<br>Fire</h1>
-  <p class="dek">Everyone knows California's wildfires keep getting bigger. Across 3,118 fires, the data quietly says the <span class="accent">opposite</span> — and that is what hides the real danger.</p>
-  <p class="byline">Prabhjas Singh · Sohan Shingade · Nirav Kanthed<br>Source: CAL FIRE incident archive, 2015–2025</p>
-  <div class="scrollcue">Scroll to begin</div>
+<div class="sheet"><div class="folio">
+  <span>The Shrinking Fire</span><span>CAL FIRE · 3,118 incidents · 2015–25</span>
+</div></div>
+
+<!-- ============ MASTHEAD ============ -->
+<header class="masthead sheet">
+  <h1 class="title">
+    <span class="t-the">The</span>
+    <span class="t-shrink" id="shrinkword"></span>
+    <span class="t-fire">Fire</span>
+  </h1>
+  <p class="standfirst">Everyone knows California's wildfires keep getting bigger. The data says the <span class="hot">opposite</span>, and that is what hides the real danger.</p>
+  <p class="dateline">Prabhjas Singh, Sohan Shingade &amp; Nirav Kanthed&nbsp;&nbsp;//&nbsp;&nbsp;Source: CAL FIRE incident archive</p>
 </header>
 
-<!-- ============ ACT A ============ -->
-<section class="col">
-  <div class="kicker step">Finding 01</div>
-  <h2 class="step">Fires got smaller, and far more common.</h2>
-  <p class="step">
-    Start with two numbers, side by side. The bars are the total acres burned each year; the ember
-    line is how many separate fires there were. They pull apart. The count climbs to record highs in
-    2024 and 2025, while total acreage stays well below the 2020 peak. Faster detection and suppression
-    now catch most fires while they are still small.
-  </p>
+<div class="sheet"><div class="scorch"></div></div>
+
+<!-- ============ 01 ============ -->
+<section class="blk sheet">
+  <div class="ghost" style="top:-3rem; left:-1rem; font-size:clamp(120px,24vw,300px)">01</div>
+  <div class="mark step">File 01 — the count</div>
+  <h2 class="step">Smaller fires.<br>Many more of them.</h2>
+  <p class="step">Read two numbers at once. The bars are total acres burned each year. The line is how many
+    separate fires there were. They rip apart. The count hits record highs in 2024 and 2025, while total
+    acreage sits far below the 2020 peak. Faster detection and suppression now catch most fires while they
+    are still small.</p>
 </section>
 
-<div class="wide">
-  <figure class="fig step">
-    <p class="label">Acres burned vs. number of fires</p>
-    <p class="note">Bars: total acres burned (left). Line: count of fires (right). California, 2015–2025.</p>
-    <div id="dual-chart"></div>
-  </figure>
+<figure class="plate-fig sheet tilt1 step">
+  <div class="fighead"><span class="figtag">Fig 1</span><span class="figcap">Total acres burned (bars) against the number of separate fires (line). 2015 to 2025.</span></div>
+  <div class="plate"><div id="dual-chart"></div></div>
+</figure>
 
-  <div class="stat-row step">
-    <div class="stat"><div class="num">112→30</div><div class="lbl">Median fire size, in acres (2015 → 2025)</div></div>
-    <div class="stat"><div class="num">95→554</div><div class="lbl">Fires recorded per year (2015 → 2025)</div></div>
-    <div class="stat"><div class="num">−73%</div><div class="lbl">Drop in the size of the typical fire</div></div>
-  </div>
-</div>
-
-<section class="col" style="margin-top:0">
-  <div class="aside step">
-    <div class="k">So far</div>
-    <p>More fires, but each one smaller. If that were the whole story, things would be improving.</p>
-  </div>
-</section>
-
-<!-- ============ ACT B ============ -->
-<section class="col">
-  <div class="kicker step">Finding 02</div>
-  <h2 class="step">A handful of monsters do nearly all the damage.</h2>
-  <p class="step">
-    Here is why "average fire size" lies. Destruction is wildly lopsided. Plot every one of the 3,118
-    fires by size and almost all of them pile up tiny on the left. A few — the complex fires like the
-    August Complex, over a million acres on its own — are flung far to the right. Those rare monsters,
-    not the typical fire, are what burn California.
-  </p>
-</section>
-
-<div class="wide">
-  <figure class="fig step">
-    <p class="label">Every fire of the decade, by size</p>
-    <p class="note">Each ember is one fire, placed left-to-right by acres burned and colored by region. Hover for details.</p>
-    <div id="beeswarm-chart"></div>
-  </figure>
-
-  <figure class="fig step">
-    <p class="label">Share of all acres burned, 2015–2025</p>
-    <p class="note">Fires ranked by size. Just ten of them account for 42% of every acre burned in eleven years.</p>
-    <div id="conc-chart"></div>
-  </figure>
-
-  <figure class="fig step">
-    <p class="label">The biggest fires of the decade</p>
-    <p class="note">These few events drive every acreage peak.</p>
-    <div id="topfire-list"></div>
-  </figure>
-</div>
-
-<section class="col" style="margin-top:0">
-  <div class="aside step">
-    <div class="k">So far</div>
-    <p>The average fire is harmless. Risk lives entirely in the rare tail — the megafire you cannot predict by counting.</p>
+<section class="blk sheet">
+  <p class="blast bleedL stroke step">112<small>median acres per fire in 2015. by 2025 it was 30. a 73% collapse.</small></p>
+  <div style="margin-top:clamp(20px,4vh,48px)">
+    <div class="mark step">Table 01</div>
+    <table class="data step">
+      <thead><tr><th>Measure</th><th class="n">2015</th><th class="n">2025</th><th class="n">Change</th></tr></thead>
+      <tbody>
+        <tr><td>Median fire size (acres)</td><td class="n">112</td><td class="n">30</td><td class="n chg">−73%</td></tr>
+        <tr><td>Fires recorded</td><td class="n">95</td><td class="n">554</td><td class="n chg">+483%</td></tr>
+        <tr><td>Total acres burned</td><td class="n">413,276</td><td class="n">527,660</td><td class="n chg">+28%</td></tr>
+        <tr><td>Southern California share</td><td class="n">9%</td><td class="n">41%</td><td class="n chg">+32 pts</td></tr>
+      </tbody>
+    </table>
   </div>
 </section>
 
-<!-- ============ ACT C ============ -->
-<section class="col">
-  <div class="kicker step">Finding 03</div>
-  <h2 class="step">The threat is moving toward people, and into winter.</h2>
-  <p class="step">
-    Now the part that should change how you read the next wildfire headline. Step through the years, or
-    press Play and watch the map scar over. Through 2020 and 2021 the giant fires burned in the sparsely
-    populated northern interior. By 2025 the burden swung south — Southern California's share of acres
-    jumped to roughly <strong>40%</strong>, including the January Los Angeles fires that erased whole
-    neighborhoods.
-  </p>
+<section class="blk sheet">
+  <p class="verdict step">More fires, but each one smaller. If that were the whole story, things would be improving.</p>
 </section>
 
-<div class="wide">
-  <figure class="fig step">
+<div class="sheet"><div class="scorch"></div></div>
+
+<!-- ============ 02 ============ -->
+<section class="blk sheet">
+  <div class="ghost" style="top:-4rem; right:-1rem; font-size:clamp(140px,30vw,420px)">02</div>
+  <p class="blast step">42%<small>of every acre burned in eleven years came from just TEN fires.</small></p>
+  <div class="alignr indent" style="margin-top:clamp(16px,3vh,40px)">
+    <div class="mark step">File 02 — the tail</div>
+    <h2 class="step">A few monsters<br>burn the state.</h2>
+    <p class="step" style="display:inline-block; text-align:left">Here is why the average lies. Destruction is wildly
+      lopsided. Plot all 3,118 fires by size and nearly every one piles up tiny on the left. A handful,
+      the complex fires like the August Complex at over a million acres alone, get flung far to the right.
+      Those rare monsters, not the typical fire, are what burn California.</p>
+  </div>
+</section>
+
+<figure class="plate-fig sheet tilt2 step">
+  <div class="fighead"><span class="figtag">Fig 2</span><span class="figcap">Every fire of the decade, one mark each, placed left to right by acres burned and colored by region.</span></div>
+  <div class="plate"><div id="beeswarm-chart"></div></div>
+</figure>
+
+<figure class="plate-fig sheet tilt3 step">
+  <div class="fighead"><span class="figtag">Fig 3</span><span class="figcap">Share of all acres burned, 2015 to 2025. Ten fires take 42 percent of everything.</span></div>
+  <div class="plate"><div id="conc-chart"></div></div>
+</figure>
+
+<section class="blk sheet ledger">
+  <div class="mark step">Table 02 — the worst of them</div>
+  <div id="topfire-list" class="step"></div>
+</section>
+
+<section class="blk sheet">
+  <p class="verdict r step">The average fire is harmless. The risk is all in the tail you cannot count.</p>
+</section>
+
+<div class="sheet"><div class="scorch"></div></div>
+
+<!-- ============ 03 (page is reddening — go light) ============ -->
+<section class="blk sheet light">
+  <div class="ghost" style="top:-4rem; left:-1rem; font-size:clamp(120px,24vw,300px)">03</div>
+  <div class="mark step">File 03 — the drift</div>
+  <h2 class="step">Toward people.<br>Into winter.</h2>
+  <p class="step">Now the part that should change how you read the next headline. Step through the years, or
+    press Play and watch the map scar over. Through 2020 and 2021 the giants burned in the empty northern
+    interior. By 2025 the burden swung south. Southern California's share of acres jumped to roughly
+    <strong>40 percent</strong>, including the January Los Angeles fires that erased whole neighborhoods.</p>
+</section>
+
+<figure class="plate-fig sheet tilt1 step light">
+  <div class="fighead"><span class="figtag">Fig 4</span><span class="figcap">Where the fires burned, and how acreage splits by region. Filters linked; Play leaves a cumulative scar.</span></div>
+  <div class="plate">
     <div class="controls">
       <button class="play-btn" id="play-btn">&#9654; Play 2015&ndash;2025</button>
       <div class="year-filters" id="year-filters"></div>
@@ -296,7 +325,7 @@
     <div class="map-wrap">
       <div>
         <p class="sub">Where the fires burned</p>
-        <p class="subnote">Each ember is one fire, sized by acres. Play leaves a cumulative burn scar.</p>
+        <p class="subnote">Each ember is one fire, sized by acres.</p>
         <div id="map-chart"></div>
       </div>
       <div>
@@ -305,90 +334,86 @@
         <div id="bar-chart"></div>
       </div>
     </div>
-  </figure>
-</div>
-
-<section class="col">
-  <p class="step">
-    Fire is also escaping its season. The spiral unspools the calendar into a coil: January at the top,
-    the year running clockwise, each loop moving outward from 2015 at the center to 2025 on the rim.
-    For most of the decade the embers cluster on the summer-and-fall arc, exactly when you would expect.
-    But the outer rings glow almost the whole way around — including the dead of winter. The bright
-    embers near the top of the 2025 ring are the January Palisades and Eaton fires.
-  </p>
-</section>
-
-<div class="wide">
-  <figure class="fig step">
-    <p class="label">The fire season, unspooled</p>
-    <p class="note">January at top, clockwise through the year. Center = 2015, outer rim = 2025. Each ember is one fire.</p>
-    <div id="spiral-chart"></div>
-  </figure>
-</div>
-
-<section class="col" style="margin-top:0">
-  <div class="aside step">
-    <div class="k">So far</div>
-    <p>Fewer wildland acres, but closer to where people live and outside the months we plan for.</p>
   </div>
+</figure>
+
+<section class="blk sheet light">
+  <div class="mark step">And the season broke open</div>
+  <p class="step">Fire is also escaping its season. For most of the decade the embers cluster on the summer
+    and fall arc. But the outer rings glow almost the whole way around, including the dead of winter. The
+    bright embers near the top of the 2025 ring are the January Palisades and Eaton fires.</p>
 </section>
 
-<!-- ============ CLOSING ============ -->
-<div class="closing">
-  <section class="col step" style="margin:0">
-    <div class="kicker">The takeaway</div>
-    <h2>Stop counting acres.</h2>
-    <p>
-      The typical California fire is shrinking, yet risk is rising — because a few unpredictable
-      megafires drive nearly all the destruction, and that destruction is moving into cities and into
-      winter. Acres burned tells you the past was bad. The distribution tells you where to prepare next:
-      for rare catastrophic events, at the wildland-urban edge, all year long.
-    </p>
-  </section>
-</div>
+<figure class="plate-fig sheet tilt2 step light">
+  <div class="fighead"><span class="figtag">Fig 5</span><span class="figcap">The fire season, unspooled. January at top; each loop is a year, 2015 at center to 2025 on the rim.</span></div>
+  <div class="plate"><div id="spiral-chart"></div></div>
+</figure>
+
+<section class="blk sheet light">
+  <p class="verdict r step">Fewer wildland acres, but closer to where we live and outside the months we plan for.</p>
+</section>
+
+<!-- ============ 04 close (char) ============ -->
+<section class="blk sheet light">
+  <div class="ghost" style="top:-2rem; left:-2rem; font-size:clamp(120px,22vw,280px)">04</div>
+  <div class="mark step">The takeaway</div>
+  <h2 class="step" style="font-size:clamp(48px,11vw,150px); max-width:none">Stop counting acres.</h2>
+  <p class="step">The typical California fire is shrinking, yet the risk is rising. A few unpredictable
+    megafires drive nearly all the destruction, and that destruction is moving into cities and into winter.
+    Acres burned tells you the past was bad. The distribution tells you where to prepare next: for rare
+    catastrophic events, at the wildland-urban edge, all year long.</p>
+</section>
 
 <div class="tooltip" id="tooltip"></div>
 
-<!-- ============ VIDEO ============ -->
-<section class="col video">
-  <div class="kicker">Demo</div>
-  <h2 style="font-size:clamp(26px,3.6vw,38px)">Two-minute walkthrough</h2>
-  <div class="frame" id="video-frame">
-    Demo video coming soon — the YouTube embed will live here.
-  </div>
+<!-- ============ video ============ -->
+<section class="blk sheet light">
+  <div class="fighead"><span class="figtag">Video</span><span class="figcap">A two-minute walkthrough of the argument and the views.</span></div>
+  <div class="videoframe" id="video-frame">Demo video coming soon. The YouTube embed will live here.</div>
 </section>
 
-<!-- ============ WRITEUP ============ -->
-<footer class="col">
-  <div class="rule"></div>
-  <h3 style="font-family:var(--serif);color:var(--ink)">About this project</h3>
-  <p>
-    <b>The question.</b> How has the destruction caused by California wildfires changed from 2015 to 2025?
-    The easy answer is that fires keep getting bigger; our data pushed back. Working from CAL FIRE's
-    archive of 3,118 fires, we found the typical fire has gotten smaller and far more frequent — which
-    sounds like good news, but hides three things that matter more: a handful of rare megafires drive
-    almost half of all acres burned, the damage is shifting toward the populated south, and fire is
-    spilling outside its normal season into winter.
-  </p>
-  <p>
-    <b>The visualizations.</b> Built in D3 across linked views, each carrying one beat of the argument.
-    A combined bar-and-line chart shows acres falling while counts rise. A beeswarm of all 3,118 fires
-    makes the long tail visible, and a concentration bar shows ten fires owning forty percent of all
-    acreage. A map plots every fire as an ember sized by acres, with a Play button that animates the
-    decade and leaves a cumulative burn scar; a stacked bar breaks acreage down by region, linked to the
-    map. A calendar spiral reveals the season stretching open. We used a square-root scale so a
-    million-acre fire does not swallow the map, and held to a single ember accent so intensity stays legible.
-  </p>
-  <p>
-    <b>The challenge.</b> Making a counterintuitive argument legible. The honest signal here is a
-    distribution, not one rising line, so we designed views that show both the shrinking typical fire and
-    the dominating tail without contradicting each other. Tuning scales, keeping 3,000-plus records
-    responsive under tooltips and animation, and matching county names across datasets all took real
-    iteration.
-  </p>
+<!-- ============ colophon ============ -->
+<footer class="colophon sheet light">
+  <div class="scorch"></div>
+  <div class="body" style="margin-bottom:34px">
+    <p><strong>The question.</strong> How has the destruction caused by California wildfires changed from 2015
+      to 2025? The easy answer is that fires keep getting bigger. Our data pushed back. The typical fire has
+      gotten smaller and far more frequent, which hides three things that matter more: a handful of rare
+      megafires drive almost half of all acres burned, the damage is shifting toward the populated south, and
+      fire is spilling outside its normal season into winter.</p>
+    <p><strong>The views.</strong> Five linked D3 visualizations, each carrying one beat of the argument: a
+      bar-and-line chart, a swarm of all 3,118 fires, a concentration bar, a linked map with an animated burn
+      scar and a regional stack, and a calendar spiral. We used a square-root scale so a million-acre fire
+      does not swallow the map, and held to a single fire color so intensity stays legible.</p>
+    <p><strong>The challenge.</strong> Making a counterintuitive argument legible. The honest signal is a
+      distribution, not one rising line, so we built views that show both the shrinking typical fire and the
+      dominating tail at once. Tuning scales, keeping 3,000-plus records responsive, and matching county
+      names across datasets all took real iteration.</p>
+  </div>
+  <dl>
+    <dt>Project</dt><dd>DSC 106 Final</dd>
+    <dt>Data</dt><dd>CAL FIRE incident archive</dd>
+    <dt>Team</dt><dd>Singh · Shingade · Kanthed</dd>
+    <dt>Built with</dt><dd>D3.js</dd>
+    <dt>Type</dt><dd>Anton · Newsreader · IBM Plex Mono</dd>
+    <dt>Records</dt><dd>3,118 fires</dd>
+  </dl>
 </footer>
 
 <script>
+// build the "SHRINKING" word with letters that physically shrink
+(function(){
+  const word = 'Shrinking', el = document.getElementById('shrinkword');
+  const base = 'clamp(46px, 12vw, 168px)';
+  [...word].forEach((ch, i) => {
+    const s = document.createElement('span');
+    const scale = 1 - i * 0.083;            // each letter smaller than the last
+    s.textContent = ch;
+    s.style.fontSize = `calc(${base} * ${scale.toFixed(3)})`;
+    el.appendChild(s);
+  });
+})();
+
 let RAW_DATA = [];
 
 fetch('firedata.json')
@@ -495,11 +520,10 @@ function init() {
       .call(d3.axisRight(yC).ticks(5));
 
     svg.append('text').attr('class','axis-label').attr('text-anchor','middle')
-      .attr('transform', `translate(16,${m.top+ih/2}) rotate(-90)`).text('Acres burned');
-    svg.append('text').attr('class','axis-label').attr('text-anchor','middle').attr('fill','#ef5a26')
-      .attr('transform', `translate(${W-14},${m.top+ih/2}) rotate(-90)`).text('Number of fires');
+      .attr('transform', `translate(16,${m.top+ih/2}) rotate(-90)`).text('ACRES BURNED');
+    svg.append('text').attr('class','axis-label').attr('text-anchor','middle').attr('fill','#ff5a1f')
+      .attr('transform', `translate(${W-14},${m.top+ih/2}) rotate(-90)`).text('NUMBER OF FIRES');
 
-    // annotation: record count
     const annoYear = 2024;
     const ax = m.left + x(annoYear) + x.bandwidth()/2, ay = m.top + yC(perYear.find(d=>d.year===annoYear).count);
     svg.append('line').attr('class','anno-line').attr('x1',ax).attr('y1',ay).attr('x2',ax).attr('y2',ay-26);
@@ -516,7 +540,7 @@ function init() {
     const next40 = d3.sum(sorted.slice(10,50), d=>d.acres);
     const rest = total - top10 - next40;
     const segs = [
-      { label: 'Top 10 fires', val: top10, color: '#ef5a26', n: 10 },
+      { label: 'Top 10 fires', val: top10, color: '#ff5a1f', n: 10 },
       { label: 'Next 40 fires', val: next40, color: '#bd6638', n: 40 },
       { label: `Other ${ (sorted.length-50).toLocaleString() } fires`, val: rest, color: '#5a4636', n: sorted.length-50 }
     ];
@@ -599,14 +623,13 @@ function init() {
       .tickFormat(d => d >= 1e6 ? (d/1e6)+'M' : d >= 1e3 ? (d/1e3)+'K' : d);
     g.append('g').attr('class', 'axis').attr('transform', `translate(0,${ih + 8})`).call(axis);
     svg.append('text').attr('class', 'axis-label').attr('x', W/2).attr('y', H - 6)
-      .attr('text-anchor', 'middle').text('Acres burned per fire (square-root scale) →');
+      .attr('text-anchor', 'middle').text('ACRES BURNED PER FIRE (SQUARE-ROOT SCALE)');
 
-    // annotate the single largest fire, flung to the right
     const big = nodes.reduce((a, b) => b.acres > a.acres ? b : a, nodes[0]);
     g.append('text').attr('class', 'anno').attr('text-anchor', 'end')
       .attr('x', Math.min(iw, big.x) - 14).attr('y', big.y + 3)
-      .attr('fill', '#ef5a26').attr('font-weight', '700')
-      .text('August Complex, 1M+ acres →');
+      .attr('fill', '#ff5a1f').attr('font-weight', '700')
+      .text('August Complex, 1M+ acres');
   })();
 
   // ============================================================
@@ -635,7 +658,6 @@ function init() {
     .attr('viewBox', `0 0 ${MW} ${MH}`).attr('preserveAspectRatio', 'xMidYMid meet');
   const proj = d3.geoMercator().center([-119.5, 37.4]).scale(2400).translate([MW/2, MH/2]);
 
-  // ember radial gradient — makes each fire glow like a live coal
   const defs = mapSvg.append('defs');
   const eg = defs.append('radialGradient').attr('id', 'ember')
     .attr('cx', '50%').attr('cy', '50%').attr('r', '50%');
@@ -644,7 +666,7 @@ function init() {
   eg.append('stop').attr('offset', '100%').attr('stop-color', '#c01e00');
 
   const outlineGroup = mapSvg.append('g');
-  const scarGroup = mapSvg.append('g');   // persistent burn scars (under embers)
+  const scarGroup = mapSvg.append('g');
   const dotsGroup = mapSvg.append('g');
   const rScale = d3.scaleSqrt().domain([0, d3.max(RAW_DATA, d => d.acres)]).range([2, 20]);
 
@@ -699,7 +721,7 @@ function init() {
           .attr('d', miniPath).attr('fill', '#473a30').attr('stroke', '#5d4d40').attr('stroke-width', 0.3);
         const rCounties = regionMap[r];
         svg.selectAll('.hl').data(caCounties.features.filter(f => rCounties.includes(f.properties.name)))
-          .join('path').attr('d', miniPath).attr('fill', regionColors(r)).attr('stroke', '#120c0a').attr('stroke-width', 0.3);
+          .join('path').attr('d', miniPath).attr('fill', regionColors(r)).attr('stroke', '#15110d').attr('stroke-width', 0.3);
         const label = document.createElement('span'); label.textContent = r; item.appendChild(label);
         legendEl.appendChild(item);
       });
@@ -757,20 +779,18 @@ function init() {
     const rDot = d3.scaleSqrt().domain([0, maxAc]).range([0.9, 9]);
     const col = d3.scaleSequential(d3.interpolateYlOrRd).domain([0, Math.sqrt(maxAc)]);
     const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    const SANS = "'Archivo', -apple-system, system-ui, sans-serif";
+    const SANS = "'IBM Plex Mono', ui-monospace, monospace";
 
-    // month spokes + labels
     monthNames.forEach((mn, i) => {
       const ang = (-90 + 360*i/12) * Math.PI/180;
       svg.append('line').attr('x1', cx).attr('y1', cy)
         .attr('x2', cx + rMax*Math.cos(ang)).attr('y2', cy + rMax*Math.sin(ang))
         .attr('stroke', '#3a2c22').attr('stroke-width', 0.5);
       svg.append('text').attr('x', cx + (rMax+18)*Math.cos(ang)).attr('y', cy + (rMax+18)*Math.sin(ang))
-        .attr('fill', '#9a8d7d').attr('font-size', 12).attr('font-family', SANS)
+        .attr('fill', '#9a8d7a').attr('font-size', 11).attr('font-family', SANS)
         .attr('text-anchor', 'middle').attr('dy', '0.35em').text(mn);
     });
 
-    // embers
     const dots = RAW_DATA.map(d => {
       const frac = yearFrac(d);
       const r = r0 + step * ((d.year - 2015) + frac);
@@ -787,7 +807,6 @@ function init() {
         `<strong>${d.name.replace(/\s*\(.*$/, '')}</strong><br>${d.year} &middot; ${firstCounty(d.county)} County<br>${Math.round(d.a).toLocaleString()} acres`))
       .on('mouseout', hideTip);
 
-    // year labels along the January spoke
     years.forEach(y => {
       if ((y - 2015) % 2 !== 0 && y !== 2025) return;
       const r = r0 + step * (y - 2015);
@@ -814,7 +833,6 @@ function init() {
       i++;
       if (i >= years.length) {
         clearInterval(playTimer); playTimer = null;
-        // final frame: show the full decade of embers over the cumulative burn scar
         selectedYear = null; refresh();
         playBtn.innerHTML = '&#9654; Replay 2015&ndash;2025';
         return;
@@ -824,16 +842,15 @@ function init() {
   });
 }
 
-// ---------- scrollytelling reveal (graceful) ----------
+// ---------- reveal (graceful) ----------
 (function reveal() {
   const steps = document.querySelectorAll('.step');
   function showAll() { steps.forEach(s => s.classList.add('in-view')); }
   if (!('IntersectionObserver' in window)) { showAll(); return; }
   const obs = new IntersectionObserver((entries) => {
     entries.forEach(en => { if (en.isIntersecting) { en.target.classList.add('in-view'); obs.unobserve(en.target); } });
-  }, { threshold: 0.12 });
+  }, { threshold: 0.1 });
   steps.forEach(s => obs.observe(s));
-  // failsafe: never leave content hidden during a recording
   setTimeout(showAll, 2500);
 })();
 </script>
