@@ -49,6 +49,11 @@
     border: 1px solid #ececec; border-radius: 10px; padding: 20px;
     margin: 20px 0; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.04);
   }
+  .chart-card-dark { background: #111; border-color: #111; }
+  .chart-card-dark .chart-title { color: #f3f3f3; }
+  .chart-card-dark .chart-note  { color: #9a9a9a; }
+  #spiral-chart { display: flex; justify-content: center; }
+  #spiral-chart svg { max-width: 540px; }
   .chart-title { font-size: 16px; font-weight: bold; margin: 0 0 2px; }
   .chart-note  { font-size: 13px; color: var(--muted); margin: 0 0 14px; font-family: -apple-system, system-ui, sans-serif; }
 
@@ -254,16 +259,18 @@
   </div>
 
   <p class="step">
-    Fire is also escaping its season. The grid below shows acres burned by month for each year. For
-    most of the decade the heat sits in summer and fall. But 2025 lights up across the whole row &mdash;
-    including <strong>January</strong>, the month of the Palisades and Eaton fires. Wildfire is becoming
-    a year-round, everywhere problem.
+    Fire is also escaping its season. The spiral below unspools the calendar into a coil: January sits at
+    the top and the year runs clockwise, while each loop moves outward from 2015 at the center to 2025 on
+    the rim. Every ember is one fire, sized and colored by acres. For most of the decade the embers cluster
+    on the summer-and-fall arc, exactly when you would expect. But the outermost rings glow almost the whole
+    way around, including the dead of winter: the bright embers near the top of the 2025 ring are the January
+    Palisades and Eaton fires. Wildfire is becoming a year-round problem.
   </p>
 
-  <div class="chart-card step">
-    <p class="chart-title">When fires burn: acres by month and year</p>
-    <p class="chart-note">Darker means more acres. The outlined cell is January 2025, the Los Angeles fires.</p>
-    <div id="season-chart"></div>
+  <div class="chart-card chart-card-dark step">
+    <p class="chart-title">The fire season, unspooled</p>
+    <p class="chart-note">January at top, clockwise through the year. Center = 2015, outer rim = 2025. Each ember is one fire; hover for details.</p>
+    <div id="spiral-chart"></div>
   </div>
 
   <div class="takeaway step">
@@ -354,15 +361,17 @@ function init() {
   document.addEventListener('mousemove', e => { if (tooltip.style.display === 'block') moveTip(e); });
 
   // ---------- helpers ----------
-  function monthOf(d) {
+  const cumDays = [0,31,59,90,120,151,181,212,243,273,304,334];
+  function monthDay(d) {
     const s = String(d.date || '');
-    let parts = s.includes('-') ? s.split('-') : s.split('/');
-    if (parts.length < 2) return null;
-    let m;
-    if (parts[0].length === 4) m = +parts[1];   // YYYY-MM-DD
-    else m = +parts[0];                          // M/D/YYYY
-    return (m >= 1 && m <= 12) ? m : null;
+    let m, day;
+    if (s.includes('-')) { const p = s.split('-'); if (p[0].length === 4) { m = +p[1]; day = +p[2]; } else { m = +p[0]; day = +p[1]; } }
+    else if (s.includes('/')) { const p = s.split('/'); m = +p[0]; day = +p[1]; }
+    if (!(m >= 1 && m <= 12)) m = 7;
+    if (!(day >= 1 && day <= 31)) day = 1;
+    return { m, day };
   }
+  function yearFrac(d) { const { m, day } = monthDay(d); return (cumDays[m-1] + day - 1) / 365; }
   const median = arr => { const a = [...arr].sort((x,y)=>x-y); const n=a.length;
     return n ? (n%2 ? a[(n-1)/2] : (a[n/2-1]+a[n/2])/2) : 0; };
 
@@ -690,41 +699,54 @@ function init() {
   }
 
   // ============================================================
-  // CHART C3: seasonality heatmap
+  // CHART C3: fire season spiral
   // ============================================================
-  (function drawSeason() {
+  (function drawSpiral() {
+    const S = 560, cx = S/2, cy = S/2;
+    const svg = d3.select('#spiral-chart').append('svg')
+      .attr('viewBox', `0 0 ${S} ${S}`).attr('preserveAspectRatio', 'xMidYMid meet');
+    const r0 = 52, rMax = 246, step = (rMax - r0) / 11;
+    const maxAc = d3.max(RAW_DATA, d => d.acres);
+    const rDot = d3.scaleSqrt().domain([0, maxAc]).range([0.9, 9]);
+    const col = d3.scaleSequential(d3.interpolateYlOrRd).domain([0, Math.sqrt(maxAc)]);
     const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    const cells = [];
-    years.forEach(y => { for (let m=1;m<=12;m++) cells.push({ year:y, month:m, acres:0 }); });
-    const idx = {}; cells.forEach(c => idx[c.year+'-'+c.month] = c);
-    RAW_DATA.forEach(d => { const m = monthOf(d); if (m && idx[d.year+'-'+m]) idx[d.year+'-'+m].acres += d.acres; });
+    const SANS = '-apple-system, system-ui, sans-serif';
 
-    const W = 720, H = 300, m = { top: 16, right: 14, bottom: 24, left: 48 };
-    const iw = W-m.left-m.right, ih = H-m.top-m.bottom;
-    const svg = d3.select('#season-chart').append('svg')
-      .attr('viewBox', `0 0 ${W} ${H}`).attr('preserveAspectRatio','xMidYMid meet');
-    const g = svg.append('g').attr('transform', `translate(${m.left},${m.top})`);
-    const x = d3.scaleBand().domain(d3.range(1,13)).range([0,iw]).padding(0.08);
-    const y = d3.scaleBand().domain(years).range([0,ih]).padding(0.08);
-    const color = d3.scaleSequential(d3.interpolateYlOrRd)
-      .domain([0, Math.sqrt(d3.max(cells, c=>c.acres))]);
+    // month spokes + labels
+    monthNames.forEach((mn, i) => {
+      const ang = (-90 + 360*i/12) * Math.PI/180;
+      svg.append('line').attr('x1', cx).attr('y1', cy)
+        .attr('x2', cx + rMax*Math.cos(ang)).attr('y2', cy + rMax*Math.sin(ang))
+        .attr('stroke', '#333').attr('stroke-width', 0.5);
+      svg.append('text').attr('x', cx + (rMax+18)*Math.cos(ang)).attr('y', cy + (rMax+18)*Math.sin(ang))
+        .attr('fill', '#9a9a9a').attr('font-size', 12).attr('font-family', SANS)
+        .attr('text-anchor', 'middle').attr('dy', '0.35em').text(mn);
+    });
 
-    g.selectAll('rect').data(cells).join('rect')
-      .attr('class', c => 'cell' + (c.year===2025 && c.month===1 ? ' flag' : ''))
-      .attr('x', c=>x(c.month)).attr('y', c=>y(c.year))
-      .attr('width', x.bandwidth()).attr('height', y.bandwidth())
-      .attr('fill', c => c.acres>0 ? color(Math.sqrt(c.acres)) : '#f5f5f5')
-      .on('mouseover', (e,c)=>showTip(e, `<strong>${monthNames[c.month-1]} ${c.year}</strong><br>${Math.round(c.acres).toLocaleString()} acres`))
+    // embers
+    const dots = RAW_DATA.map(d => {
+      const frac = yearFrac(d);
+      const r = r0 + step * ((d.year - 2015) + frac);
+      const ang = (-90 + 360*frac) * Math.PI/180;
+      return { x: cx + r*Math.cos(ang), y: cy + r*Math.sin(ang),
+               a: d.acres, name: d.name, year: d.year, county: d.county };
+    }).sort((a, b) => b.a - a.a);
+
+    svg.append('g').selectAll('circle').data(dots).join('circle')
+      .attr('cx', d => d.x).attr('cy', d => d.y).attr('r', d => rDot(d.a))
+      .attr('fill', d => col(Math.sqrt(d.a))).attr('opacity', 0.88)
+      .style('cursor', 'pointer')
+      .on('mouseover', (e, d) => showTip(e,
+        `<strong>${d.name.replace(/\s*\(.*$/, '')}</strong><br>${d.year} &middot; ${firstCounty(d.county)} County<br>${Math.round(d.a).toLocaleString()} acres`))
       .on('mouseout', hideTip);
 
-    g.append('g').attr('class','axis').attr('transform',`translate(0,${ih})`)
-      .call(d3.axisBottom(x).tickFormat(d=>monthNames[d-1]));
-    g.append('g').attr('class','axis').call(d3.axisLeft(y).tickFormat(d3.format('d')));
-
-    // annotation arrow to Jan 2025
-    const cx = m.left + x(1) + x.bandwidth()/2, cy = m.top + y(2025) + y.bandwidth()/2;
-    svg.append('text').attr('class','anno').attr('x', cx + x.bandwidth()).attr('y', cy+4)
-      .attr('fill','#cc3300').attr('font-weight','700').text('← LA fires, January 2025');
+    // year labels along the January spoke
+    years.forEach(y => {
+      if ((y - 2015) % 2 !== 0 && y !== 2025) return;
+      const r = r0 + step * (y - 2015);
+      svg.append('text').attr('x', cx + 4).attr('y', cy - r)
+        .attr('fill', '#777').attr('font-size', 9).attr('font-family', SANS).text(y);
+    });
   })();
 
   // ============================================================
