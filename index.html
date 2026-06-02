@@ -210,18 +210,7 @@
   .step.in-view { opacity: 1; transform: none; }
   @media (prefers-reduced-motion: reduce){ .step { opacity: 1; transform: none; transition: none; } }
 
-  /* ---------- scroll-snap slide storytelling ---------- */
-  html { scroll-snap-type: y proximity; scroll-behavior: smooth; }
-  .masthead, .blk, .plate-fig {
-    min-height: 100vh; margin: 0; display: flex; flex-direction: column; justify-content: center;
-    scroll-snap-align: center; scroll-snap-stop: normal;
-  }
   [data-parallax] { will-change: transform; }
-  @media (prefers-reduced-motion: reduce) { html { scroll-snap-type: none; } }
-  @media (max-width: 760px) {
-    html { scroll-snap-type: none; }
-    .masthead, .blk, .plate-fig { min-height: auto; padding: 12vh 0; scroll-snap-align: none; justify-content: flex-start; }
-  }
 </style>
 </head>
 <body>
