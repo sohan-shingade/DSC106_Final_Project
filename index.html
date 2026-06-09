@@ -379,6 +379,10 @@
     transition: opacity 0.4s, color 0.2s;
   }
   .nav-arrow:hover { color: var(--ember); }
+  .nav-up {
+    bottom: auto; top: 20px; left: 50%; animation: bobup 2s ease-in-out infinite;
+  }
+  @keyframes bobup { 0%,100%{ transform: translateX(-50%) translateY(0) } 50%{ transform: translateX(-50%) translateY(-6px) } }
   .nav-hint {
     position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%);
     font-family: var(--mono); font-size: 10px; color: rgba(154,141,122,0.5);
@@ -728,6 +732,7 @@
   </div>
 </section>
 
+<button class="nav-arrow nav-up" id="nav-up" aria-label="Previous slide">&#8593;</button>
 <button class="nav-arrow" id="nav-arrow" aria-label="Next slide">&#8595;</button>
 <div class="nav-hint" id="nav-hint">click anywhere or press ↓ to advance</div>
 
@@ -1930,6 +1935,7 @@ function buildAll() {
     '.act-hook, .act-hook-prose, .s-step, .interlude, .act-explore, .act-close'
   )];
   const arrow = document.getElementById('nav-arrow');
+  const upArrow = document.getElementById('nav-up');
   const hint = document.getElementById('nav-hint');
   let hintDismissed = false, advancing = false;
 
@@ -1955,7 +1961,26 @@ function buildAll() {
     }
   }
 
+  function goBack() {
+    if (advancing) return;
+    advancing = true;
+    setTimeout(() => { advancing = false; }, 900);
+    const scrollTop = window.scrollY;
+    const trigger = scrollTop + window.innerHeight * 0.3;
+    for (let i = slides.length - 1; i >= 0; i--) {
+      const top = slides[i].getBoundingClientRect().top + scrollTop;
+      if (top < trigger - 40) {
+        const isStep = slides[i].classList.contains('s-step');
+        const offset = isStep ? window.innerHeight * 0.15 : 0;
+        window.scrollTo({ top: Math.max(0, top - offset), behavior: 'smooth' });
+        return;
+      }
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
   arrow.addEventListener('click', e => { e.stopPropagation(); advance(); });
+  upArrow.addEventListener('click', e => { e.stopPropagation(); goBack(); });
 
   document.addEventListener('click', e => {
     if (e.target.closest('button, a, input, select, textarea, .explore-controls, .sim-controls, .fire-detail-card, .region-btns, .explore-years, svg')) return;
@@ -1965,6 +1990,7 @@ function buildAll() {
   document.addEventListener('keydown', e => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
     if (e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); advance(); }
+    if (e.key === 'ArrowUp') { e.preventDefault(); goBack(); }
   });
 
   let scrollTick = false;
