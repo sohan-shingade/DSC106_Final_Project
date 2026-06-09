@@ -1931,16 +1931,19 @@ function buildAll() {
   )];
   const arrow = document.getElementById('nav-arrow');
   const hint = document.getElementById('nav-hint');
-  let hintDismissed = false;
+  let hintDismissed = false, advancing = false;
 
   function advance() {
+    if (advancing) return;
+    advancing = true;
+    setTimeout(() => { advancing = false; }, 900);
     const scrollTop = window.scrollY;
     const trigger = scrollTop + window.innerHeight * 0.5;
     for (const sl of slides) {
       const top = sl.getBoundingClientRect().top + scrollTop;
       if (top > trigger + 40) {
         const isStep = sl.classList.contains('s-step');
-        const offset = isStep ? window.innerHeight * 0.42 : 0;
+        const offset = isStep ? window.innerHeight * 0.15 : 0;
         window.scrollTo({ top: top - offset, behavior: 'smooth' });
         if (!hintDismissed) {
           hintDismissed = true;
