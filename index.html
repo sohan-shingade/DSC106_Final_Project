@@ -371,6 +371,25 @@
              border: 1px solid #1a120d; }
   .tooltip strong { font-family: var(--text); font-size: 14px; }
 
+  .nav-arrow {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+    z-index: 200; cursor: pointer; background: none; border: none;
+    font-size: 32px; color: rgba(255,90,31,0.5); padding: 8px 18px;
+    animation: bob 2s ease-in-out infinite;
+    transition: opacity 0.4s, color 0.2s;
+  }
+  .nav-arrow:hover { color: var(--ember); }
+  .nav-hint {
+    position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%);
+    font-family: var(--mono); font-size: 10px; color: rgba(154,141,122,0.5);
+    letter-spacing: .08em; text-transform: uppercase; white-space: nowrap;
+    z-index: 200; pointer-events: none; transition: opacity 0.6s;
+  }
+  .nav-hint.corner {
+    bottom: auto; top: 16px; right: 20px; left: auto; transform: none;
+    font-size: 9px; opacity: 0.3;
+  }
+
   [data-parallax] { will-change: transform; }
 
   .fade-in { opacity: 0; transform: translateY(16px); transition: opacity .6s ease, transform .6s ease; }
@@ -708,6 +727,9 @@
     </footer>
   </div>
 </section>
+
+<button class="nav-arrow" id="nav-arrow" aria-label="Next slide">&#8595;</button>
+<div class="nav-hint" id="nav-hint">click anywhere or press ↓ to advance</div>
 
 <div class="tooltip" id="tooltip"></div>
 
@@ -1898,6 +1920,65 @@ function buildAll() {
   window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
   window.addEventListener('resize', update);
   update();
+})();
+
+// ============================================================
+// CLICK-TO-ADVANCE NAVIGATION
+// ============================================================
+(function setupNav() {
+  const slides = [...document.querySelectorAll(
+    '.act-hook, .act-hook-prose, .s-step, .interlude, .act-explore, .act-close'
+  )];
+  const arrow = document.getElementById('nav-arrow');
+  const hint = document.getElementById('nav-hint');
+  let hintDismissed = false;
+
+  function advance() {
+    const scrollTop = window.scrollY;
+    const trigger = scrollTop + window.innerHeight * 0.5;
+    for (const sl of slides) {
+      const top = sl.getBoundingClientRect().top + scrollTop;
+      if (top > trigger + 40) {
+        const isStep = sl.classList.contains('s-step');
+        const offset = isStep ? window.innerHeight * 0.42 : 0;
+        window.scrollTo({ top: top - offset, behavior: 'smooth' });
+        if (!hintDismissed) {
+          hintDismissed = true;
+          hint.classList.add('corner');
+          hint.textContent = 'click to advance';
+        }
+        return;
+      }
+    }
+  }
+
+  arrow.addEventListener('click', e => { e.stopPropagation(); advance(); });
+
+  document.addEventListener('click', e => {
+    if (e.target.closest('button, a, input, select, textarea, .explore-controls, .sim-controls, .fire-detail-card, .region-btns, .explore-years, svg')) return;
+    advance();
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); advance(); }
+  });
+
+  let scrollTick = false;
+  window.addEventListener('scroll', () => {
+    if (scrollTick) return;
+    scrollTick = true;
+    requestAnimationFrame(() => {
+      const nearBottom = (window.innerHeight + window.scrollY) >= document.body.scrollHeight - 200;
+      arrow.style.opacity = nearBottom ? '0' : '1';
+      if (!hintDismissed && window.scrollY > window.innerHeight * 0.5) {
+        hintDismissed = true;
+        hint.classList.add('corner');
+        hint.textContent = 'click to advance';
+      }
+      scrollTick = false;
+    });
+  }, { passive: true });
 })();
 </script>
 </body>
