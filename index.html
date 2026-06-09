@@ -251,8 +251,8 @@
   .act-explore { background: #0e0a06; color: #e0d5c4; padding: clamp(60px,10vh,100px) 0; }
   .act-explore h2 { font-family: var(--display); text-transform: uppercase; color: #fff;
     font-size: clamp(38px, 7.5vw, 80px); line-height: .9; margin: 0 0 12px; }
-  .act-explore p.intro { font-family: var(--text); font-size: clamp(16px,1.2vw,18px); line-height: 1.5;
-    max-width: 52ch; margin: 0 0 28px; color: #b0a593; }
+  .act-explore p.intro { font-family: var(--text); font-size: clamp(15px,1.1vw,17px); line-height: 1.45;
+    max-width: 52ch; margin: 0 0 14px; color: #b0a593; }
   .explore-controls {
     display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 24px;
   }
@@ -286,11 +286,11 @@
   }
 
   /* simulator */
-  .simulator { margin-bottom: clamp(40px,7vh,70px); padding-bottom: clamp(30px,5vh,50px);
+  .simulator { margin-bottom: clamp(30px,5vh,50px); padding-bottom: clamp(20px,3vh,40px);
     border-bottom: 1px solid rgba(255,90,31,.15); }
   .simulator h3 { font-family: var(--display); text-transform: uppercase; color: #fff;
-    font-size: clamp(28px,5vw,48px); line-height: .9; margin: 4px 0 10px; }
-  .sim-controls { display: flex; flex-wrap: wrap; gap: 18px; align-items: end; margin: 20px 0; }
+    font-size: clamp(24px,4vw,38px); line-height: .9; margin: 2px 0 6px; }
+  .sim-controls { display: flex; flex-wrap: wrap; gap: 14px; align-items: end; margin: 12px 0; }
   .sim-slider { flex: 1; min-width: 180px; }
   .sim-slider label { font-family: var(--mono); font-size: 12px; color: #cdbfa9;
     display: block; margin-bottom: 6px; }
@@ -660,17 +660,19 @@
         </div>
         <button class="play-btn" id="sim-run" style="margin-top:4px">&#9654; Simulate 10 years</button>
       </div>
-      <div id="sim-counter" style="display:none; margin:20px 0 8px">
-        <div>
-          <span style="font-family:var(--mono);font-size:11px;color:#9a8d7a;letter-spacing:.06em">YEAR </span>
-          <span id="sim-year" style="font-family:var(--display);font-size:clamp(36px,5vw,56px);color:var(--ember)">1</span>
-          <span style="font-family:var(--mono);font-size:11px;color:#9a8d7a;letter-spacing:.06em"> OF 10</span>
+      <div id="sim-counter" style="display:none; margin:12px 0 6px">
+        <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
+          <div>
+            <span style="font-family:var(--mono);font-size:10px;color:#9a8d7a;letter-spacing:.06em">YEAR </span>
+            <span id="sim-year" style="font-family:var(--display);font-size:clamp(28px,4vw,42px);color:var(--ember)">1</span>
+            <span style="font-family:var(--mono);font-size:10px;color:#9a8d7a"> / 10</span>
+          </div>
+          <div>
+            <span id="sim-struct-count" style="font-family:var(--display);font-size:clamp(36px,5vw,56px);color:#fff">0</span>
+            <span style="font-family:var(--mono);font-size:12px;color:#9a8d7a"> structures</span>
+          </div>
         </div>
-        <div style="margin-top:4px">
-          <span id="sim-struct-count" style="font-family:var(--display);font-size:clamp(48px,7vw,80px);color:#fff">0</span>
-          <span style="font-family:var(--mono);font-size:13px;color:#9a8d7a"> structures destroyed</span>
-        </div>
-        <div id="sim-eaton" style="margin-top:8px;font-family:var(--text);font-size:clamp(16px,1.4vw,20px);color:#e0d5c4;font-style:italic"></div>
+        <div id="sim-eaton" style="margin-top:4px;font-family:var(--text);font-size:clamp(14px,1.2vw,17px);color:#e0d5c4;font-style:italic"></div>
       </div>
       <div id="sim-compare" style="display:none"></div>
       <div id="sim-results"></div>
@@ -1500,11 +1502,11 @@ function buildAll() {
         const isActive = b.textContent === 'All' ? !activeRegion : b.textContent === activeRegion;
         b.classList.toggle('active', isActive);
         if (isActive && b.dataset.color) {
-          b.style.backgroundColor = b.dataset.color;
+          b.style.background = b.dataset.color;
           b.style.borderColor = b.dataset.color;
           b.style.color = '#1a0f08';
         } else {
-          b.style.backgroundColor = '';
+          b.style.background = '';
           b.style.borderColor = '';
           b.style.color = '';
         }
@@ -1559,10 +1561,10 @@ function buildAll() {
 
     const EATON = 9418;
     const COST_PER = 700000;
-    const CELL_VAL = 100;
+    const CELL_VAL = 150;
     const COLS = 20;
-    const MAX_CELLS = 300;
-    const CELL_SZ = 12, CELL_GAP = 2, CELL_STEP = CELL_SZ + CELL_GAP;
+    const MAX_CELLS = 200;
+    const CELL_SZ = 10, CELL_GAP = 2, CELL_STEP = CELL_SZ + CELL_GAP;
 
     function buildGrid(containerId) {
       const el = document.getElementById(containerId);
