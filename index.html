@@ -1320,14 +1320,11 @@ function buildAll() {
       .attr('stroke', 'rgba(255, 90, 31, 0.12)')
       .attr('stroke-width', 0.5);
 
-    const wedgeLabelAng = (-90 + 360 * 0.6) * Math.PI / 180;
     svg.append('text')
-      .attr('x', cx + (rMax - 20) * Math.cos(wedgeLabelAng))
-      .attr('y', cy + (rMax - 20) * Math.sin(wedgeLabelAng))
-      .attr('fill', 'rgba(255, 90, 31, 0.3)').attr('font-size', 8).attr('font-family', SANS)
-      .attr('text-anchor', 'middle').attr('letter-spacing', '.08em')
-      .attr('transform', `rotate(${0.6*360 - 90}, ${cx + (rMax-20)*Math.cos(wedgeLabelAng)}, ${cy + (rMax-20)*Math.sin(wedgeLabelAng)})`)
-      .text('FIRE SEASON · MAY–NOV');
+      .attr('x', 10).attr('y', S - 10)
+      .attr('fill', 'rgba(255, 90, 31, 0.45)').attr('font-size', 10).attr('font-family', SANS)
+      .attr('text-anchor', 'start').attr('letter-spacing', '.06em')
+      .text('SHADED = FIRE SEASON (MAY–NOV)');
 
     const dots = RAW_DATA.map(d => {
       const frac = yearFrac(d);
@@ -1454,9 +1451,14 @@ function buildAll() {
     function refresh() {
       const filtered = filterData();
       const fSet = new Set(filtered.map(d => d.name+d.year+d.lat));
+      const rc = activeRegion ? regionColors(activeRegion) : null;
       exDots.transition().duration(300)
-        .attr('opacity', d => fSet.has(d.name+d.year+d.lat) ? 0.78 : 0.04)
-        .attr('r', d => fSet.has(d.name+d.year+d.lat) ? rScale(d.acres) : rScale(d.acres)*0.4);
+        .attr('opacity', d => fSet.has(d.name+d.year+d.lat) ? 0.82 : 0.04)
+        .attr('r', d => fSet.has(d.name+d.year+d.lat) ? rScale(d.acres) : rScale(d.acres)*0.4)
+        .attr('fill', d => {
+          if (!fSet.has(d.name+d.year+d.lat)) return 'url(#ember-ex)';
+          return rc || 'url(#ember-ex)';
+        });
       updateStats(filtered);
     }
 
@@ -1970,10 +1972,10 @@ function buildAll() {
     advancing = true;
     setTimeout(() => { advancing = false; }, 900);
     const scrollTop = window.scrollY;
-    const trigger = scrollTop + window.innerHeight * 0.3;
+    const trigger = scrollTop + window.innerHeight * 0.05;
     for (let i = slides.length - 1; i >= 0; i--) {
       const top = slides[i].getBoundingClientRect().top + scrollTop;
-      if (top < trigger - 40) {
+      if (top < trigger - 20) {
         const isStep = slides[i].classList.contains('s-step');
         const offset = isStep ? window.innerHeight * 0.15 : 0;
         window.scrollTo({ top: Math.max(0, top - offset), behavior: 'smooth' });
