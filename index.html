@@ -22,37 +22,30 @@
     --mono:  'IBM Plex Mono', ui-monospace, monospace;
   }
   * { box-sizing: border-box; }
-  html { -webkit-text-size-adjust: 100%; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
   body {
     margin: 0; overflow-x: hidden; color: var(--ink);
-    font-family: var(--text);
-    /* the page ignites top→bottom */
-    background:
-      linear-gradient(180deg,
-        #ece4d6 0%, #ecdcbf 14%, #efc873 26%,
-        #efb24e 34%, #e9852b 46%, #e2611d 56%,
-        #c43113 66%, #9e1b0b 74%, #4a160a 84%, #150a06 93%, #0c0907 100%);
+    font-family: var(--text); background: var(--ash);
     -webkit-font-smoothing: antialiased;
   }
   ::selection { background: var(--ember); color: #120a05; }
-
   .sheet { max-width: 1180px; margin: 0 auto; padding: 0 clamp(18px, 5vw, 64px); position: relative; }
 
-  /* zones: text color flips as the page chars */
-  .light { color: #fff2e4; }
-  .light .quietc { color: #d9b9a0; }
-  .light .figcap { color: #e9c2a6; }
-  .light h2, .light .verdict { color: #fff; }
-
-  /* ---------- folio ---------- */
+  /* ---------- hook ---------- */
+  .act-hook {
+    background: var(--ash);
+    min-height: 100vh; display: flex; flex-direction: column; justify-content: center;
+  }
   .folio {
     border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink);
     font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
     padding: 8px 0; display: flex; justify-content: space-between; gap: 14px; font-weight: 600;
   }
-
-  /* ---------- masthead ---------- */
-  .masthead { padding: clamp(40px,8vh,90px) clamp(20px,5vw,64px) clamp(30px,5vh,60px); }
+  .masthead {
+    padding: clamp(50px,10vh,110px) 0 clamp(30px,5vh,50px);
+    display: flex; align-items: flex-end; gap: clamp(24px, 4vw, 60px);
+  }
+  .masthead-copy { flex: 1; padding-bottom: clamp(8px, 2vh, 24px); }
   .title { font-family: var(--display); line-height: 0.78; margin: 0; text-transform: uppercase; }
   .t-the   { display: block; font-size: clamp(28px, 6vw, 76px); letter-spacing: .12em; color: var(--ink); margin-left: .15em; }
   .t-shrink{ display: block; white-space: nowrap; color: var(--ink); }
@@ -68,68 +61,121 @@
     72%{ opacity:1 } 73%{ opacity:.7 } 74%{ opacity:1 } 88%{ opacity:.88 } 89%{ opacity:1 }
   }
   @media (prefers-reduced-motion: reduce){ .t-fire{ animation: none } }
-
   .standfirst {
     font-family: var(--text); font-weight: 300; font-size: clamp(22px, 3vw, 38px); line-height: 1.28;
-    max-width: 22ch; margin: clamp(26px,5vh,52px) 0 0;
+    max-width: 22ch; margin: clamp(30px,6vh,60px) 0 0;
   }
   .standfirst .hot { color: var(--blood); font-style: italic; font-weight: 400; }
   .dateline {
     font-family: var(--mono); font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase;
-    color: #6c5b46; margin-top: 26px; line-height: 1.8;
+    color: #6c5b46; margin-top: 32px; line-height: 1.8;
   }
+  .act-hook-prose {
+    background: var(--ash); min-height: 100vh;
+    display: flex; align-items: center;
+  }
+  .hook-prose { padding: clamp(40px,8vh,80px) 0; }
+  .hook-prose p {
+    font-family: var(--text); font-size: clamp(20px, 2vw, 26px); line-height: 1.55;
+    max-width: 46ch; margin: 0 0 22px; color: var(--ink);
+  }
+  .hook-prose .kicker {
+    font-family: var(--text); font-style: italic; font-weight: 300;
+    font-size: clamp(20px, 2.2vw, 28px); color: var(--blood); margin-top: 20px;
+  }
+  .scroll-cue {
+    font-family: var(--mono); font-size: 13px; color: #9a8d7a; letter-spacing: .1em;
+    margin-top: clamp(30px,6vh,60px); text-transform: uppercase;
+    animation: bob 2s ease-in-out infinite;
+  }
+  @keyframes bob { 0%,100%{ transform: translateY(0) } 50%{ transform: translateY(6px) } }
 
   /* ---------- scorch divider ---------- */
-  .scorch { height: 26px; background: var(--ink); margin: clamp(40px,7vh,80px) 0;
+  .scorch { height: 26px; background: var(--ink);
     clip-path: polygon(0 38%,4% 60%,8% 30%,13% 70%,17% 40%,22% 75%,27% 35%,32% 64%,37% 28%,
       43% 72%,48% 42%,53% 78%,58% 33%,63% 66%,68% 30%,74% 74%,79% 44%,84% 70%,89% 32%,94% 62%,100% 40%,100% 100%,0 100%); }
-  .light .scorch { background: var(--ember); }
 
-  /* ---------- the erratic grid ---------- */
-  .blk { position: relative; margin: clamp(46px,8vh,100px) 0; }
-  .ghost {
-    position: absolute; font-family: var(--display); line-height: .7; pointer-events: none;
-    color: transparent; -webkit-text-stroke: 2px rgba(26,18,8,.16); z-index: 0; user-select: none;
+  /* ---------- scrollytelling ---------- */
+  .scroll-section { display: flex; position: relative; background: var(--plate); }
+  .scroll__graphic {
+    flex: 0 0 56%; position: sticky; top: 0; height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    align-self: flex-start; padding: clamp(12px, 2vw, 32px);
   }
-  .light .ghost { -webkit-text-stroke-color: rgba(255,120,60,.22); }
-  .blk > * { position: relative; z-index: 1; }
+  .graphic-inner { width: 100%; max-width: 720px; }
+  .scroll-plate {
+    background: var(--plate); border: 1px solid rgba(60,40,20,.4);
+    padding: clamp(10px, 1.8vw, 24px); box-shadow: 0 16px 44px rgba(0,0,0,.35);
+  }
+  .fig-label {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .04em;
+    color: #9a8d7a; margin: 0 0 8px;
+  }
+  .fig-label .figtag { font-weight: 600; text-transform: uppercase; color: var(--ember); }
+  .scroll__text {
+    flex: 1; padding: 50vh clamp(20px, 3vw, 48px) 40vh; position: relative; z-index: 2;
+  }
+  .scroll__text .s-step {
+    min-height: 80vh; display: flex; align-items: center;
+    opacity: 0.1; transition: opacity 0.5s ease;
+  }
+  .scroll__text .s-step.is-active { opacity: 1; }
+  .step__card {
+    max-width: 380px;
+  }
+  .step__card p {
+    font-family: var(--text); font-size: clamp(16px, 1.3vw, 19px);
+    line-height: 1.6; margin: 0 0 14px; color: #e0d5c4;
+  }
+  .step__card p:last-child { margin-bottom: 0; }
+  .step__card .s-label {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ember); margin-bottom: 10px; font-weight: 600;
+  }
+  .step__card .s-big {
+    font-family: var(--display); font-size: clamp(44px, 7vw, 84px);
+    color: var(--ember); line-height: .82; margin: 8px 0 14px; text-transform: uppercase;
+  }
+  .step__card .s-question {
+    font-family: var(--text); font-style: italic; font-weight: 300;
+    font-size: clamp(22px, 2.8vw, 34px); line-height: 1.25; color: #fff;
+  }
 
-  .mark { font-family: var(--mono); font-weight: 600; font-size: 12px; letter-spacing: .12em;
-          text-transform: uppercase; color: var(--ember); }
-  h2 { font-family: var(--display); text-transform: uppercase; line-height: .9; letter-spacing: -0.005em;
-       font-size: clamp(38px, 7.5vw, 104px); margin: 6px 0 22px; max-width: 16ch; color: var(--ink); }
-  .blk p { font-family: var(--text); font-size: clamp(17px,1.35vw,20px); line-height: 1.65; max-width: 56ch; margin: 0 0 20px; }
-  .blk p strong { font-weight: 500; }
-  .indent { margin-left: clamp(0px, 14vw, 220px); }
-  .alignr { text-align: right; }
-  .alignr h2, .alignr p { margin-left: auto; }
-
-  .verdict { font-family: var(--text); font-style: italic; font-weight: 300;
-             font-size: clamp(24px,3.4vw,46px); line-height: 1.22; max-width: 20ch; }
-  .verdict.r { margin-left: auto; text-align: right; }
-
-  /* gigantic bleed numbers */
+  /* ---------- interludes ---------- */
+  .interlude { padding: clamp(60px, 12vh, 120px) 0; }
+  .interlude-warm {
+    background: linear-gradient(180deg, #ecdcbf 0%, #efc873 100%); color: var(--ink);
+  }
+  .interlude-hot {
+    background: linear-gradient(180deg, #e2611d 0%, #c43113 100%); color: #fff2e4;
+  }
+  .interlude-ember {
+    background: linear-gradient(180deg, #9e1b0b 0%, #4a160a 100%); color: #fff2e4;
+  }
+  .interlude-dark {
+    background: linear-gradient(180deg, #4a160a 0%, #150a06 100%); color: #fff2e4;
+  }
+  .interlude .mark { font-family: var(--mono); font-weight: 600; font-size: 12px;
+    letter-spacing: .12em; text-transform: uppercase; color: var(--ember); }
+  .interlude h2 { font-family: var(--display); text-transform: uppercase; line-height: .9;
+    font-size: clamp(38px, 7.5vw, 104px); margin: 6px 0 22px; max-width: 16ch; }
+  .interlude-warm h2 { color: var(--ink); }
+  .interlude-hot h2, .interlude-ember h2, .interlude-dark h2 { color: #fff; }
+  .interlude p.prose {
+    font-family: var(--text); font-size: clamp(17px,1.35vw,20px);
+    line-height: 1.65; max-width: 56ch; margin: 0 0 20px;
+  }
   .blast { font-family: var(--display); line-height: .76; color: var(--ember);
-           font-size: clamp(110px, 26vw, 340px); letter-spacing: -0.03em; margin: 0; }
+           font-size: clamp(100px, 24vw, 320px); letter-spacing: -0.03em; margin: 0; }
   .blast.stroke { color: transparent; -webkit-text-stroke: 3px var(--ember); }
   .blast small { font-size: .26em; display: block; font-family: var(--mono); letter-spacing: .04em;
                  color: inherit; -webkit-text-stroke: 0; line-height: 1.3; }
-  .bleedL { margin-left: clamp(-60px,-6vw,-30px); }
+  .verdict { font-family: var(--text); font-style: italic; font-weight: 300;
+             font-size: clamp(24px,3.4vw,46px); line-height: 1.22; max-width: 22ch; }
+  .verdict.r { margin-left: auto; text-align: right; }
 
-  /* ---------- figure plates (taped in, askew) ---------- */
-  .plate-fig { margin: clamp(40px,7vh,92px) 0; }
-  .fighead { font-family: var(--mono); font-size: 12px; letter-spacing: .04em; margin-bottom: 12px;
-             display: flex; gap: 14px; align-items: baseline; }
-  .fighead .figtag { font-weight: 600; text-transform: uppercase; color: var(--ember);
-                     border: 1.5px solid var(--ember); padding: 2px 7px; }
-  .figcap { font-family: var(--text); font-style: italic; font-size: clamp(13px,1.1vw,15px); color: #6c5b46; max-width: 56ch; }
-  .plate { background: var(--plate); border: 1px solid rgba(0,0,0,.5); padding: clamp(16px,3vw,32px);
-           box-shadow: 0 26px 60px rgba(0,0,0,.4); }
-  .tilt1 { transform: rotate(-1.4deg); } .tilt2 { transform: rotate(1deg); }
-  .tilt3 { transform: rotate(-0.7deg); }
+  /* ---------- chart skins ---------- */
   svg { width: 100%; height: auto; display: block; }
-
-  /* chart skins (always on dark plate) */
   .axis text { font-family: var(--mono); font-size: 11px; fill: #9a8d7a; }
   .axis line, .axis path { stroke: #3a2e24; }
   .grid line { stroke: #241b14; } .grid path { stroke: none; }
@@ -146,17 +192,33 @@
   .fire-dot:hover { opacity: 1; stroke: #fff; stroke-width: 0.5px; }
   .scar { pointer-events: none; }
   .ca-outline { fill: #241910; stroke: #3d2c20; stroke-width: 1px; }
-  .stacked-bar { opacity: 0.9; cursor: pointer; }
-  .stacked-bar:hover { opacity: 1; stroke: #e9dfce; stroke-width: 0.5px; }
 
-  /* ledger (biggest fires) — on page, not plate */
-  .ledger .topfire { display: grid; grid-template-columns: 56px 1fr auto; gap: 16px; align-items: baseline;
-                     padding: 12px 0; border-bottom: 1px solid rgba(26,18,8,.28); }
-  .light .ledger .topfire { border-bottom-color: rgba(255,120,60,.3); }
-  .ledger .topfire:first-of-type { border-top: 2px solid currentColor; }
-  .ledger .yr { font-family: var(--mono); font-size: 13px; opacity: .65; }
-  .ledger .nm { font-family: var(--display); text-transform: uppercase; font-size: clamp(18px,2.4vw,30px); letter-spacing: .01em; }
-  .ledger .ac { font-family: var(--mono); font-size: 14px; color: var(--ember); font-variant-numeric: tabular-nums; }
+  /* city markers on map */
+  .city-marker { fill: none; stroke: #e9dfce; stroke-width: 1.2; }
+  .city-label { font-family: var(--mono); font-size: 9px; fill: #e9dfce; letter-spacing: .04em;
+    text-transform: uppercase; pointer-events: none; }
+
+  /* scatter plot */
+  .scatter-dot { cursor: pointer; transition: opacity 0.3s; }
+  .scatter-dot:hover { stroke: #fff; stroke-width: 1.5px; }
+  .scatter-label { font-family: var(--mono); font-size: 10px; fill: #cdbfa9; pointer-events: none; }
+  .ref-line { stroke: #3a2e24; stroke-width: 0.5; stroke-dasharray: 4 3; }
+
+  /* fair plan chart */
+  .fair-line { fill: none; stroke: var(--ember); stroke-width: 2.5; }
+  .fair-area { fill: var(--ember); opacity: 0.12; }
+  .fair-dot { fill: var(--ember); }
+
+  /* stat blocks in interludes */
+  .stat-block { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(20px,3vw,40px);
+    margin: clamp(30px,5vh,60px) 0; }
+  .stat-block .stat-item { }
+  .stat-block .stat-num { font-family: var(--display); font-size: clamp(40px,6vw,72px);
+    color: var(--ember); line-height: .85; margin-bottom: 8px; text-transform: uppercase; }
+  .stat-block .stat-desc { font-family: var(--mono); font-size: 12px; color: #d0c4b5;
+    line-height: 1.5; letter-spacing: .02em; }
+  @media (max-width: 640px) { .stat-block { grid-template-columns: 1fr; }
+    .stat-block .stat-num { font-size: clamp(32px,10vw,52px); } }
 
   /* data table */
   table.data { width: 100%; border-collapse: collapse; font-family: var(--mono); }
@@ -164,300 +226,520 @@
   table.data thead th { font-weight: 600; font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase;
                         opacity: .7; border-bottom: 2px solid currentColor; }
   table.data tbody td { font-size: 15px; border-bottom: 1px solid rgba(26,18,8,.22); }
-  .light table.data tbody td { border-bottom-color: rgba(255,120,60,.25); }
+  .interlude-warm table.data tbody td { border-bottom-color: rgba(26,18,8,.18); }
   table.data tbody tr:last-child td { border-bottom: 2px solid currentColor; }
   table.data td:first-child, table.data th:first-child { font-family: var(--text); font-size: 17px; padding-left: 0; }
   table.data .n { text-align: right; font-variant-numeric: tabular-nums; }
   table.data .chg { color: var(--ember); font-weight: 600; }
 
-  /* map plate internals */
-  .controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
-  .year-filters { display: flex; gap: 6px; flex-wrap: wrap; }
-  .year-btn { padding: 5px 11px; font-family: var(--mono); font-size: 12px; border: 1px solid #4a3a2c;
-              background: transparent; color: #cdbfa9; cursor: pointer; }
-  .year-btn:hover { background: #221710; border-color: #6a5340; }
-  .year-btn.active { background: #ff5a1f; color: #1a0f08; border-color: #ff5a1f; font-weight: 600; }
-  .play-btn { padding: 7px 15px; font-family: var(--mono); font-size: 12px; font-weight: 600; border: none;
-              background: #ff5a1f; color: #1a0f08; cursor: pointer; }
-  .play-btn:hover { background: #ff6b35; }
-  .map-wrap { display: grid; grid-template-columns: 1.05fr 1fr; gap: 30px; align-items: start; }
-  @media (max-width: 760px) { .map-wrap { grid-template-columns: 1fr; gap: 34px; } }
-  .map-wrap .sub { font-family: var(--mono); font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: #cdbfa9; margin: 0 0 2px; }
-  .map-wrap .subnote { font-family: var(--text); font-style: italic; font-size: 13.5px; color: #8e8270; margin: 0 0 14px; }
-  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 22px; justify-content: center; align-items: flex-start; }
-  .legend-item { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 104px;
-                 text-align: center; font-family: var(--mono); font-size: 10.5px; line-height: 1.3; color: #9a8d7a; }
-  .legend-item svg { display: block; }
-  #spiral-chart { display: flex; justify-content: center; }
-  #spiral-chart svg { max-width: 560px; }
+  /* ledger */
+  .ledger .topfire { display: grid; grid-template-columns: 56px 1fr auto; gap: 16px; align-items: baseline;
+                     padding: 12px 0; border-bottom: 1px solid rgba(255,120,60,.3); }
+  .ledger .topfire:first-of-type { border-top: 2px solid currentColor; }
+  .ledger .yr { font-family: var(--mono); font-size: 13px; opacity: .65; }
+  .ledger .nm { font-family: var(--display); text-transform: uppercase; font-size: clamp(18px,2.4vw,30px); }
+  .ledger .ac { font-family: var(--mono); font-size: 14px; color: var(--ember); font-variant-numeric: tabular-nums; }
+
+  /* concentration */
+  .plate-inline {
+    background: var(--plate); border: 1px solid rgba(60,40,20,.4);
+    padding: clamp(16px,3vw,32px); box-shadow: 0 20px 50px rgba(0,0,0,.35);
+    margin: clamp(30px,5vh,60px) 0;
+  }
+
+  /* ---------- explore ---------- */
+  .act-explore { background: #0e0a06; color: #e0d5c4; padding: clamp(60px,10vh,100px) 0; }
+  .act-explore h2 { font-family: var(--display); text-transform: uppercase; color: #fff;
+    font-size: clamp(38px, 7.5vw, 80px); line-height: .9; margin: 0 0 12px; }
+  .act-explore p.intro { font-family: var(--text); font-size: clamp(16px,1.2vw,18px); line-height: 1.5;
+    max-width: 52ch; margin: 0 0 28px; color: #b0a593; }
+  .explore-controls {
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 24px;
+  }
+  #fire-search {
+    font-family: var(--mono); font-size: 13px; padding: 7px 14px;
+    background: #1a1208; border: 1px solid #4a3a2c; color: #e9dfce; width: 240px;
+  }
+  #fire-search::placeholder { color: #6c5b46; }
+  #fire-search:focus { outline: none; border-color: var(--ember); }
+  .region-btns, .explore-years { display: flex; gap: 5px; flex-wrap: wrap; }
+  .region-btn, .yr-btn {
+    padding: 5px 10px; font-family: var(--mono); font-size: 11px; border: 1px solid #4a3a2c;
+    background: transparent; color: #cdbfa9; cursor: pointer; text-transform: uppercase; letter-spacing: .03em;
+  }
+  .region-btn:hover, .yr-btn:hover { background: #221710; border-color: #6a5340; }
+  .region-btn.active, .yr-btn.active { background: var(--ember); color: #1a0f08; border-color: var(--ember); font-weight: 600; }
+  .explore-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start;
+  }
+  .explore-stats { font-family: var(--mono); font-size: 13px; color: #cdbfa9; }
+  .stat-row { display: flex; justify-content: space-between; padding: 11px 0;
+              border-bottom: 1px solid rgba(255,120,60,.18); }
+  .stat-val { color: var(--ember); font-weight: 600; font-size: 15px; }
+  .stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+  .fire-detail-card {
+    background: #1a1208; padding: 16px 20px; margin-top: 18px; font-family: var(--mono); font-size: 13px;
+  }
+  .fire-detail-card .fd-name {
+    font-family: var(--display); font-size: clamp(20px,3vw,28px); text-transform: uppercase;
+    color: #fff; margin-bottom: 6px; line-height: .95;
+  }
+
+  /* simulator */
+  .simulator { margin-bottom: clamp(40px,7vh,70px); padding-bottom: clamp(30px,5vh,50px);
+    border-bottom: 1px solid rgba(255,90,31,.15); }
+  .simulator h3 { font-family: var(--display); text-transform: uppercase; color: #fff;
+    font-size: clamp(28px,5vw,48px); line-height: .9; margin: 4px 0 10px; }
+  .sim-controls { display: flex; flex-wrap: wrap; gap: 18px; align-items: end; margin: 20px 0; }
+  .sim-slider { flex: 1; min-width: 180px; }
+  .sim-slider label { font-family: var(--mono); font-size: 12px; color: #cdbfa9;
+    display: block; margin-bottom: 6px; }
+  .sim-slider label span { color: var(--ember); font-weight: 600; }
+  .sim-slider input[type="range"] { width: 100%; accent-color: var(--ember);
+    background: #1a1208; height: 4px; border-radius: 2px; cursor: pointer; }
+  .sim-bar { height: 22px; background: #1a1208; overflow: hidden; margin-top: 4px; }
+  .sim-bar-fill { height: 100%; transition: width 0.7s ease; }
+  .sim-row { margin-bottom: 10px; }
+  .sim-row-head { display: flex; justify-content: space-between;
+    font-family: var(--mono); font-size: 12px; color: #9a8d7a; margin-bottom: 3px; }
+  .sim-row-head .sim-val { font-weight: 600; }
+  .sim-note { font-family: var(--text); font-size: 15px; color: #e0d5c4;
+    font-style: italic; max-width: 50ch; margin-top: 16px; line-height: 1.5; }
+  .sim-cell { transition: fill 0.4s ease-out; }
+  .sim-leaflet { height: 300px; width: 100%; border: 1px solid rgba(60,40,20,.4); position: relative; }
+  .burn-overlay {
+    position: absolute; border-radius: 50%; pointer-events: none; z-index: 600;
+    background: radial-gradient(circle, rgba(255,68,0,0.7) 0%, rgba(255,68,0,0.4) 40%, rgba(255,68,0,0.15) 70%, transparent 100%);
+    box-shadow: 0 0 30px rgba(255,90,31,0.5), 0 0 60px rgba(255,68,0,0.3);
+    transform: translate(-50%, -50%);
+  }
+  .sim-leaflet .leaflet-control-attribution { font-size: 8px; background: rgba(0,0,0,.6); color: #6c5b46; }
+  .sim-leaflet .leaflet-control-attribution a { color: #9a8d7a; }
+  .sim-houses-section { margin: 16px 0 20px; }
+  .sim-houses-row { display: flex; align-items: end; gap: 2px; margin-bottom: 14px; }
+  .sim-houses-label { font-family: var(--mono); font-size: 11px; color: #9a8d7a;
+    margin-bottom: 4px; letter-spacing: .04em; }
+  .sim-houses-label.active { color: var(--ember); font-weight: 600; }
+  .sim-houses-count { font-family: var(--display); font-size: clamp(18px,2.5vw,28px);
+    margin-left: 10px; line-height: 1; }
+  .sim-house-icon { transition: fill 0.3s, opacity 0.3s; }
+  .sim-legend { font-family: var(--mono); font-size: 10px; color: #6c5b46; margin-top: 4px; }
+  .sim-grids-wrap { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: clamp(10px,2vw,20px); margin-bottom: 20px; }
+  .sim-grid-col { }
+  .sim-grid-title { font-family: var(--mono); font-size: 11px; font-weight: 600; color: #cdbfa9;
+    text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+  .sim-grid-title.active { color: var(--ember); }
+  .sim-grid-params { font-family: var(--mono); font-size: 10px; color: #6c5b46; margin-bottom: 6px; }
+  .sim-grid-count { font-family: var(--display); font-size: clamp(24px,3vw,36px); margin-top: 6px; }
+  .sim-grid-count.ember { color: var(--ember); }
+  .sim-grid-count.muted { color: #9a8d7a; }
+  .play-btn {
+    font-family: var(--mono); font-size: 12px; padding: 8px 18px;
+    background: var(--ember); color: #1a0f08; border: none; cursor: pointer;
+    font-weight: 600; letter-spacing: .03em; text-transform: uppercase;
+  }
+  .play-btn:hover { background: #ff7a3f; }
+  .slider-ticks { position: relative; height: 22px; margin-top: 2px; }
+  .slider-ticks .tick {
+    position: absolute; transform: translateX(-50%);
+    font-family: var(--mono); font-size: 8px; color: #6c5b46; text-align: center; line-height: 1.3;
+    white-space: nowrap;
+  }
+  .slider-ticks .tick::before {
+    content: ''; display: block; width: 1px; height: 5px; background: #6c5b46;
+    margin: 0 auto 1px;
+  }
+  @media (max-width: 640px) { .sim-grids-wrap { grid-template-columns: 1fr; gap: 20px; } }
+
+  /* ---------- close ---------- */
+  .act-close { background: #0c0907; color: #fff2e4; padding: clamp(60px,12vh,120px) 0; }
+  .act-close h2 { font-family: var(--display); text-transform: uppercase; color: #fff;
+    font-size: clamp(48px,11vw,150px); line-height: .88; margin: 0 0 24px; }
+  .act-close p { font-family: var(--text); font-size: clamp(17px,1.35vw,20px); line-height: 1.65;
+    max-width: 56ch; margin: 0 0 20px; }
+  .colophon { padding-top: clamp(50px,8vh,80px); }
+  .colophon dl { columns: 2; font-family: var(--mono); }
+  .colophon dt { font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--ember); margin-top: 14px; }
+  .colophon dd { font-family: var(--text); font-size: 15px; margin: 2px 0 0; color: #d0c4b5; }
+  .colophon .body p { font-family: var(--text); font-size: 15px; line-height: 1.6; max-width: 60ch;
+    margin: 0 0 14px; color: #d0c4b5; }
+  .videoframe { background: var(--plate); border: 1px solid rgba(60,40,20,.4); padding: 48px; text-align: center;
+                font-family: var(--mono); font-size: 12.5px; color: #8e8270; margin-bottom: 40px; }
 
   .tooltip { position: fixed; background: #faf4e9; color: #1a120d; padding: 9px 13px; font-family: var(--mono);
              font-size: 12.5px; pointer-events: none; display: none; line-height: 1.5; max-width: 230px; z-index: 50;
              border: 1px solid #1a120d; }
   .tooltip strong { font-family: var(--text); font-size: 14px; }
 
-  .videoframe { background: var(--plate); border: 1px solid rgba(0,0,0,.5); padding: 48px; text-align: center;
-                font-family: var(--mono); font-size: 12.5px; color: #8e8270; }
-
-  /* colophon */
-  .colophon { padding-bottom: clamp(60px,12vh,120px); }
-  .colophon dl { columns: 2; font-family: var(--mono); }
-  .colophon dt { font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--ember); margin-top: 14px; }
-  .colophon dd { font-family: var(--text); font-size: 15px; margin: 2px 0 0; }
-  .colophon .body p { font-family: var(--text); font-size: 15px; line-height: 1.6; max-width: 60ch; margin: 0 0 14px; }
-
-  .step { opacity: 0; transform: translateY(18px); transition: opacity .7s ease, transform .7s cubic-bezier(.2,.7,.2,1); }
-  .step.in-view { opacity: 1; transform: none; }
-  @media (prefers-reduced-motion: reduce){ .step { opacity: 1; transform: none; transition: none; } }
-
   [data-parallax] { will-change: transform; }
 
+  .fade-in { opacity: 0; transform: translateY(16px); transition: opacity .6s ease, transform .6s ease; }
+  .fade-in.visible { opacity: 1; transform: none; }
+
   /* ---------- mobile ---------- */
-  @media (max-width: 640px) {
+  @media (max-width: 768px) {
+    .scroll-section { display: block; }
+    .scroll__graphic {
+      position: sticky; top: 0; height: 46vh; flex: none; width: 100%;
+      padding: 10px 14px; z-index: 1;
+    }
+    .scroll__text {
+      position: relative; z-index: 2; padding: 2rem clamp(18px, 5vw, 40px) 10vh;
+    }
+    .scroll__text .s-step { min-height: 55vh; }
+    .step__card { max-width: none; background: rgba(8,5,3,0.88); padding: 16px 20px;
+                  -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+    .masthead { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .masthead-copy { padding-bottom: 0; }
     .folio { font-size: 9.5px; letter-spacing: .05em; }
-    .ghost { font-size: min(34vw, 150px) !important; }
     .t-the { font-size: clamp(26px, 9vw, 50px); }
     .t-fire { font-size: clamp(96px, 40vw, 200px); }
-    h2 { font-size: clamp(32px, 9.5vw, 56px); }
-    h2.big { font-size: clamp(40px, 13vw, 76px); }
-    .standfirst { font-size: clamp(21px, 6.4vw, 30px); max-width: none; }
-    .blk p, .main p, .colophon .body p { font-size: 16.5px; max-width: none; }
-    .blast { font-size: clamp(82px, 31vw, 150px); }
-    .verdict { font-size: clamp(21px, 6.2vw, 30px); max-width: none; }
-    .indent { margin-left: 0; }
-    .alignr, .alignr h2, .alignr p { text-align: left; }
-    .map-wrap { grid-template-columns: 1fr; gap: 30px; }
-    .plate { padding: 14px; }
-    table.data th, table.data td { padding: 9px 5px; }
-    table.data tbody td, table.data .n { font-size: 12.5px; }
-    table.data td:first-child, table.data th:first-child { font-size: 14px; }
-    .ledger .nm { font-size: clamp(16px, 5vw, 24px); }
+    .blast { font-size: clamp(72px, 28vw, 140px); }
+    .verdict { font-size: clamp(20px, 5.5vw, 28px); max-width: none; }
+    .interlude h2, .act-close h2 { font-size: clamp(32px, 9vw, 56px); }
+    .act-explore h2 { font-size: clamp(28px, 8vw, 48px); }
+    .explore-grid { grid-template-columns: 1fr; }
     .colophon dl { columns: 1; }
+    .hook-prose p { font-size: 17px; }
   }
 </style>
 </head>
 <body>
 
-<div class="sheet"><div class="folio">
-  <span>The Shrinking Fire</span><span>CAL FIRE · 3,118 incidents · 2015–25</span>
-</div></div>
-
-<!-- ============ MASTHEAD ============ -->
-<header class="masthead sheet">
-  <h1 class="title">
-    <span class="t-the">The</span>
-    <span class="t-shrink" id="shrinkword"></span>
-    <span class="t-fire" data-parallax="0.07">Fire</span>
-  </h1>
-  <p class="standfirst">Everyone knows California's wildfires keep getting bigger. The data says the <span class="hot">opposite</span>, and that is what hides the real danger.</p>
-  <p class="dateline">Prabhjas Singh, Sohan Shingade &amp; Nirav Kanthed&nbsp;&nbsp;//&nbsp;&nbsp;Source: CAL FIRE incident archive</p>
-</header>
-
-
-<!-- ============ 01 ============ -->
-<section class="blk sheet">
-  <div class="ghost" data-parallax="0.22" style="top:-3rem; left:-1rem; font-size:clamp(120px,24vw,300px)">01</div>
-  <div class="mark step">File 01 — the count</div>
-  <h2 class="step">Smaller fires.<br>Many more of them.</h2>
-  <p class="step">Read two numbers at once. The bars are total acres burned each year. The line is how many
-    separate fires there were. They rip apart. The count hits record highs in 2024 and 2025, while total
-    acreage sits far below the 2020 peak. Faster detection and suppression now catch most fires while they
-    are still small.</p>
-</section>
-
-<figure class="plate-fig sheet tilt1 step">
-  <div class="fighead"><span class="figtag">Fig 1</span><span class="figcap">Total acres burned (bars) against the number of separate fires (line). 2015 to 2025.</span></div>
-  <div class="plate"><div id="dual-chart"></div></div>
-</figure>
-
-<section class="blk sheet">
-  <p class="blast bleedL stroke step">112<small>median acres per fire in 2015. by 2025 it was 30. a 73% collapse.</small></p>
-  <div style="margin-top:clamp(20px,4vh,48px)">
-    <div class="mark step">Table 01</div>
-    <table class="data step">
-      <thead><tr><th>Measure</th><th class="n">2015</th><th class="n">2025</th><th class="n">Change</th></tr></thead>
-      <tbody>
-        <tr><td>Median fire size (acres)</td><td class="n">112</td><td class="n">30</td><td class="n chg">−73%</td></tr>
-        <tr><td>Fires recorded</td><td class="n">95</td><td class="n">554</td><td class="n chg">+483%</td></tr>
-        <tr><td>Total acres burned</td><td class="n">413,276</td><td class="n">527,660</td><td class="n chg">+28%</td></tr>
-        <tr><td>Southern California share</td><td class="n">9%</td><td class="n">41%</td><td class="n chg">+32 pts</td></tr>
-      </tbody>
-    </table>
-  </div>
-</section>
-
-<section class="blk sheet">
-  <p class="verdict step">More fires, but each one smaller. If that were the whole story, things would be improving.</p>
-</section>
-
-
-<!-- ============ 02 ============ -->
-<section class="blk sheet">
-  <div class="ghost" data-parallax="0.28" style="top:-4rem; right:-1rem; font-size:clamp(140px,30vw,420px)">02</div>
-  <p class="blast step">42%<small>of every acre burned in eleven years came from just TEN fires.</small></p>
-  <div class="alignr indent" style="margin-top:clamp(16px,3vh,40px)">
-    <div class="mark step">File 02 — the tail</div>
-    <h2 class="step">A few monsters<br>burn the state.</h2>
-    <p class="step" style="display:inline-block; text-align:left">Here is why the average lies. Destruction is wildly
-      lopsided. Plot all 3,118 fires by size and nearly every one piles up tiny on the left. A handful,
-      the complex fires like the August Complex at over a million acres alone, get flung far to the right.
-      Those rare monsters, not the typical fire, are what burn California.</p>
-  </div>
-</section>
-
-<figure class="plate-fig sheet tilt2 step">
-  <div class="fighead"><span class="figtag">Fig 2</span><span class="figcap">Every fire of the decade, one mark each, placed left to right by acres burned and colored by region.</span></div>
-  <div class="plate"><div id="beeswarm-chart"></div></div>
-</figure>
-
-<figure class="plate-fig sheet tilt3 step">
-  <div class="fighead"><span class="figtag">Fig 3</span><span class="figcap">Share of all acres burned, 2015 to 2025. Ten fires take 42 percent of everything.</span></div>
-  <div class="plate"><div id="conc-chart"></div></div>
-</figure>
-
-<section class="blk sheet ledger">
-  <div class="mark step">Table 02 — the worst of them</div>
-  <div id="topfire-list" class="step"></div>
-</section>
-
-<section class="blk sheet">
-  <p class="verdict r step">The average fire is harmless. The risk is all in the tail you cannot count.</p>
-</section>
-
-
-<!-- ============ 03 (page is reddening — go light) ============ -->
-<section class="blk sheet light">
-  <div class="ghost" data-parallax="0.22" style="top:-4rem; left:-1rem; font-size:clamp(120px,24vw,300px)">03</div>
-  <div class="mark step">File 03 — the drift</div>
-  <h2 class="step">Toward people.<br>Into winter.</h2>
-  <p class="step">Now the part that should change how you read the next headline. Step through the years, or
-    press Play and watch the map scar over. Through 2020 and 2021 the giants burned in the empty northern
-    interior. By 2025 the burden swung south. Southern California's share of acres jumped to roughly
-    <strong>40 percent</strong>, including the January Los Angeles fires that erased whole neighborhoods.</p>
-</section>
-
-<figure class="plate-fig sheet tilt1 step light">
-  <div class="fighead"><span class="figtag">Fig 4</span><span class="figcap">Where the fires burned, and how acreage splits by region. Filters linked; Play leaves a cumulative scar.</span></div>
-  <div class="plate">
-    <div class="controls">
-      <button class="play-btn" id="play-btn">&#9654; Play 2015&ndash;2025</button>
-      <div class="year-filters" id="year-filters"></div>
+<!-- ============ ACT 1: HOOK ============ -->
+<div class="act-hook">
+  <div class="sheet">
+    <div class="folio">
+      <span>The Shrinking Fire</span><span>CAL FIRE · 3,118 incidents · 2015–25</span>
     </div>
-    <div class="legend" id="bar-legend"></div>
-    <div class="map-wrap">
-      <div>
-        <p class="sub">Where the fires burned</p>
-        <p class="subnote">Each ember is one fire, sized by acres.</p>
-        <div id="map-chart"></div>
+    <header class="masthead">
+      <h1 class="title">
+        <span class="t-the">The</span>
+        <span class="t-shrink" id="shrinkword"></span>
+        <span class="t-fire" data-parallax="0.07">Fire</span>
+      </h1>
+      <div class="masthead-copy">
+        <p class="standfirst">Everyone knows California's wildfires keep getting bigger. The data says the <span class="hot">opposite</span>, and that is what hides the real danger.</p>
+        <p class="dateline">Prabhjas Singh, Sohan Shingade &amp; Nirav Kanthed&nbsp;&nbsp;//&nbsp;&nbsp;Source: CAL FIRE incident archive</p>
       </div>
-      <div>
-        <p class="sub">Acres burned by region</p>
-        <p class="subnote">Click a bar to filter the map to that year.</p>
-        <div id="bar-chart"></div>
-      </div>
+    </header>
+    <p class="scroll-cue" style="margin-top:auto; padding-bottom:clamp(24px,4vh,40px)">↓</p>
+  </div>
+</div>
+
+<div class="act-hook-prose">
+  <div class="sheet">
+    <div class="hook-prose">
+      <p>On January 7, 2025, the Palisades Fire broke out in Los Angeles County. It burned 23,448 acres and destroyed over 5,000 structures. National headlines called it catastrophic.</p>
+      <p class="kicker">It wasn't even in California's top ten fires of the decade.</p>
+      <p class="scroll-cue">↓ scroll to begin</p>
     </div>
   </div>
-</figure>
+</div>
 
-<section class="blk sheet light">
-  <div class="mark step">And the season broke open</div>
-  <p class="step">Fire is also escaping its season. For most of the decade the embers cluster on the summer
-    and fall arc. But the outer rings glow almost the whole way around, including the dead of winter. The
-    bright embers near the top of the 2025 ring are the January Palisades and Eaton fires.</p>
-</section>
+<div class="scorch"></div>
 
-<figure class="plate-fig sheet tilt2 step light">
-  <div class="fighead"><span class="figtag">Fig 5</span><span class="figcap">The fire season, unspooled. January at top; each loop is a year, 2015 at center to 2025 on the rim. Press play to watch a decade ignite.</span></div>
-  <div class="plate">
-    <div class="controls"><button class="play-btn" id="spiral-play">&#9654; Run timelapse</button></div>
-    <div id="spiral-chart"></div>
+<!-- ============ ACT 2+3: THE SETUP → THE REVEAL ============ -->
+<section class="scroll-section" id="act-dual" data-chart="dual">
+  <div class="scroll__graphic">
+    <div class="graphic-inner">
+      <p class="fig-label"><span class="figtag">Fig 1</span> &ensp;Acres burned vs. number of fires, 2015–2025</p>
+      <div class="scroll-plate"><div id="dual-chart"></div></div>
+    </div>
   </div>
-</figure>
-
-<section class="blk sheet light">
-  <p class="verdict r step">Fewer wildland acres, but closer to where we live and outside the months we plan for.</p>
+  <div class="scroll__text">
+    <div class="s-step" data-step="0"><div class="step__card">
+      <div class="s-label">The number everyone watches</div>
+      <p>Every year, California tallies how many acres burned. It is the number that makes headlines, the one that politicians cite, the one that drives fear.</p>
+    </div></div>
+    <div class="s-step" data-step="1"><div class="step__card">
+      <p>2020 was catastrophic. Over 4 million acres, the worst year in modern history. But look what happened next. Acres dropped, and dropped again.</p>
+    </div></div>
+    <div class="s-step" data-step="2"><div class="step__card">
+      <p class="s-question">From this angle, the crisis peaked and California is recovering. That is the story most people believe.</p>
+    </div></div>
+    <div class="s-step" data-step="3"><div class="step__card">
+      <div class="s-label">The number nobody watches</div>
+      <p>But acres is only half this chart. There is a second line hiding underneath it: the raw count of individual fires.</p>
+    </div></div>
+    <div class="s-step" data-step="4"><div class="step__card">
+      <div class="s-big">483%</div>
+      <p>95 fires in 2015. 554 in 2025. The count did not drop with the acres. It ripped the other direction.</p>
+    </div></div>
+    <div class="s-step" data-step="5"><div class="step__card">
+      <p>Fires did not get better. They got smaller, and there are six times as many of them. Faster detection catches most fires young. But the ones that escape? Those are the ones that matter.</p>
+    </div></div>
+  </div>
 </section>
 
-<!-- ============ 04 close (char) ============ -->
-<section class="blk sheet light">
-  <div class="ghost" data-parallax="0.2" style="top:-2rem; left:-2rem; font-size:clamp(120px,22vw,280px)">04</div>
-  <div class="mark step">The takeaway</div>
-  <h2 class="step" style="font-size:clamp(48px,11vw,150px); max-width:none">Stop counting acres.</h2>
-  <p class="step">The typical California fire is shrinking, yet the risk is rising. A few unpredictable
-    megafires drive nearly all the destruction, and that destruction is moving into cities and into winter.
-    Acres burned tells you the past was bad. The distribution tells you where to prepare next: for rare
-    catastrophic events, at the wildland-urban edge, all year long.</p>
+<!-- TRANSITION -->
+<section class="interlude" style="background:linear-gradient(#ecdcbf,#e9852b); color:var(--ink); padding:clamp(50px,9vh,90px) 0">
+  <div class="sheet">
+    <p class="verdict fade-in">Six times more fires. Each one smaller. That sounds like progress.</p>
+  </div>
+</section>
+
+<!-- ============ ACT 2: WHY FREQUENCY MATTERS ============ -->
+<section class="scroll-section" id="act-cost" data-chart="scatter">
+  <div class="scroll__graphic">
+    <div class="graphic-inner">
+      <p class="fig-label"><span class="figtag">Fig 2</span> &ensp;Acres burned vs. structures destroyed, 27 major fires</p>
+      <div class="scroll-plate"><div id="scatter-chart"></div></div>
+    </div>
+  </div>
+  <div class="scroll__text">
+    <div class="s-step" data-step="0"><div class="step__card">
+      <div class="s-label">Why frequency matters</div>
+      <p>So California has 554 fires a year instead of 95, but each one is smaller. That sounds like progress. It is not. Here is why.</p>
+    </div></div>
+    <div class="s-step" data-step="1"><div class="step__card">
+      <p>Each dot is a major fire. The vertical axis is structures destroyed. If acres predicted damage, these dots would line up on a diagonal. They do not even come close.</p>
+    </div></div>
+    <div class="s-step" data-step="2"><div class="step__card">
+      <div class="s-big" style="font-size:clamp(28px,5vw,52px)">9,418</div>
+      <p>The Eaton Fire burned just 14,000 acres. It was one of 554 fires that year. It looked like any other small fire until it reached Altadena and destroyed 9,418 structures.</p>
+    </div></div>
+    <div class="s-step" data-step="3"><div class="step__card">
+      <div class="s-big" style="font-size:clamp(28px,5vw,52px)">935</div>
+      <p>The August Complex burned one million acres and destroyed 935 structures. It was the biggest fire in California history. It hit nothing because it burned in empty wilderness.</p>
+    </div></div>
+    <div class="s-step" data-step="4"><div class="step__card">
+      <p>The fires that destroy neighborhoods look small on an acreage chart. They look exactly like the harmless ones. When you go from 95 fires a year to 554, you are not getting 459 more campfires. You are getting 459 more chances for the next Eaton.</p>
+    </div></div>
+  </div>
+</section>
+
+<!-- TRANSITION -->
+<section class="interlude" style="background:linear-gradient(#c43113,#9e1b0b); color:#fff2e4; padding:clamp(50px,9vh,90px) 0">
+  <div class="sheet">
+    <p class="verdict fade-in">459 more chances to hit a neighborhood. And the neighborhoods are getting closer.</p>
+  </div>
+</section>
+
+<!-- ============ ACT 5: THE DRIFT ============ -->
+<section class="scroll-section" id="act-drift" data-chart="map">
+  <div class="scroll__graphic">
+    <div class="graphic-inner">
+      <p class="fig-label"><span class="figtag">Fig 3</span> &ensp;Where the fires burned, 2015–2025</p>
+      <div class="scroll-plate"><div id="map-chart"></div></div>
+    </div>
+  </div>
+  <div class="scroll__text">
+    <div class="s-step" data-step="0"><div class="step__card">
+      <div class="s-label">The empty north</div>
+      <p>For most of the decade, the largest fires burned in California's unpopulated interior. National forests, distant mountains. Far from cities.</p>
+    </div></div>
+    <div class="s-step" data-step="1"><div class="step__card">
+      <p>The Mendocino Complex. The Creek Fire. The August Complex, over a million acres in the northern wilderness. Giants burning where nobody lived.</p>
+    </div></div>
+    <div class="s-step" data-step="2"><div class="step__card">
+      <div class="s-label">The shift south</div>
+      <p>By the 2020s, fire moved south. Into cities, into neighborhoods. Southern California's share of acres burned jumped from 9% to 41%.</p>
+    </div></div>
+    <div class="s-step" data-step="3"><div class="step__card">
+      <p>January 2025. The Palisades and Eaton fires hit Los Angeles in the dead of winter. Fire escaped both its geography and its season.</p>
+    </div></div>
+  </div>
+</section>
+
+<!-- ============ ACT 5B: THE SEASON ============ -->
+<section class="scroll-section" id="act-season" data-chart="spiral">
+  <div class="scroll__graphic">
+    <div class="graphic-inner">
+      <p class="fig-label"><span class="figtag">Fig 4</span> &ensp;Fire season, unspooled. January at top, 2015 at center.</p>
+      <div class="scroll-plate"><div id="spiral-chart"></div></div>
+    </div>
+  </div>
+  <div class="scroll__text">
+    <div class="s-step" data-step="0"><div class="step__card">
+      <div class="s-label">Fire had a season</div>
+      <p>Each ring is one year. January at the top, July at the bottom. The shaded wedge is the traditional fire season: May through November. In the early rings, nearly every dot falls inside it.</p>
+    </div></div>
+    <div class="s-step" data-step="1"><div class="step__card">
+      <p>Predictable. Agencies staffed up in summer and stood down in winter. The wedge held for decades.</p>
+    </div></div>
+    <div class="s-step" data-step="2"><div class="step__card">
+      <div class="s-label">Watch the outer rings</div>
+      <p>By the 2020s, embers appear outside the wedge. Fires in February. In March. In December. The season is leaking.</p>
+    </div></div>
+    <div class="s-step" data-step="3"><div class="step__card">
+      <p>The bright dots outside the wedge on the outermost ring are January 2025. Palisades and Eaton. The season is gone. Fire is year-round now.</p>
+    </div></div>
+  </div>
+</section>
+
+<!-- INTERLUDE: verdict -->
+<section class="interlude interlude-dark">
+  <div class="sheet">
+    <p class="verdict fade-in">Fewer wildland acres, but closer to where we live and outside the months we plan for.</p>
+  </div>
+</section>
+
+<!-- ============ ACT 5C: THE FULL PICTURE ============ -->
+<section class="scroll-section" id="act-final" data-chart="final">
+  <div class="scroll__graphic">
+    <div class="graphic-inner">
+      <p class="fig-label"><span class="figtag">Fig 5</span> &ensp;Acres burned, fire count, and structures destroyed</p>
+      <div class="scroll-plate"><div id="final-chart"></div></div>
+    </div>
+  </div>
+  <div class="scroll__text">
+    <div class="s-step" data-step="0"><div class="step__card">
+      <div class="s-label">The full picture</div>
+      <p>Remember this chart? Acres burned and the fire count line. The two numbers everyone tracks. But there is a third line hiding in the data.</p>
+    </div></div>
+    <div class="s-step" data-step="1"><div class="step__card">
+      <div class="s-big" style="font-size:clamp(28px,5vw,52px)">Structures</div>
+      <p>Structures destroyed per year. It does not follow acres. It follows frequency and proximity.</p>
+    </div></div>
+    <div class="s-step" data-step="2"><div class="step__card">
+      <p>2018: the Camp Fire alone destroyed 18,804 structures. Total for the year: over 22,000. The deadliest year for homes, not the biggest year for land.</p>
+    </div></div>
+    <div class="s-step" data-step="3"><div class="step__card">
+      <p>2025: acres dropped to one of the lowest years on record. But the Eaton and Palisades fires destroyed over 16,000 structures. The red line climbed while the bars shrank.</p>
+    </div></div>
+  </div>
+</section>
+
+<div class="scorch"></div>
+
+<!-- ============ ACT 6: EXPLORE ============ -->
+<section class="act-explore" id="act-explore">
+  <div class="sheet">
+    <div class="simulator fade-in">
+      <div class="mark">Simulate</div>
+      <h3>What happens next?</h3>
+      <p class="intro">Adjust fire frequency, size, and proximity to cities. Simulate a decade. See how total destruction changes.</p>
+      <div class="sim-controls">
+        <div class="sim-slider">
+          <label>Fires per year: <span id="sim-freq-val">554</span></label>
+          <input type="range" id="sim-freq" min="50" max="1000" value="554" step="5">
+          <div class="slider-ticks">
+            <span class="tick" style="left:4.7%">2015: 95</span>
+            <span class="tick" style="left:53.1%">2025: 554</span>
+          </div>
+        </div>
+        <div class="sim-slider">
+          <label>Median fire size: <span id="sim-size-val">30</span> acres</label>
+          <input type="range" id="sim-size" min="5" max="500" value="30" step="5">
+          <div class="slider-ticks">
+            <span class="tick" style="left:5.1%">2025: 30</span>
+            <span class="tick" style="left:21.6%">2015: 112</span>
+          </div>
+        </div>
+        <div class="sim-slider">
+          <label>% near cities: <span id="sim-urban-val">15</span>%</label>
+          <input type="range" id="sim-urban" min="2" max="40" value="15" step="1">
+          <div class="slider-ticks">
+            <span class="tick" style="left:15.8%">2015: 8%</span>
+            <span class="tick" style="left:34.2%">2025: 15%</span>
+          </div>
+        </div>
+        <button class="play-btn" id="sim-run" style="margin-top:4px">&#9654; Simulate 10 years</button>
+      </div>
+      <div id="sim-counter" style="display:none; margin:20px 0 8px">
+        <div>
+          <span style="font-family:var(--mono);font-size:11px;color:#9a8d7a;letter-spacing:.06em">YEAR </span>
+          <span id="sim-year" style="font-family:var(--display);font-size:clamp(36px,5vw,56px);color:var(--ember)">1</span>
+          <span style="font-family:var(--mono);font-size:11px;color:#9a8d7a;letter-spacing:.06em"> OF 10</span>
+        </div>
+        <div style="margin-top:4px">
+          <span id="sim-struct-count" style="font-family:var(--display);font-size:clamp(48px,7vw,80px);color:#fff">0</span>
+          <span style="font-family:var(--mono);font-size:13px;color:#9a8d7a"> structures destroyed</span>
+        </div>
+        <div id="sim-eaton" style="margin-top:8px;font-family:var(--text);font-size:clamp(16px,1.4vw,20px);color:#e0d5c4;font-style:italic"></div>
+      </div>
+      <div id="sim-compare" style="display:none"></div>
+      <div id="sim-results"></div>
+    </div>
+
+    <div class="mark fade-in">Explore</div>
+    <h2 class="fade-in" style="font-size:clamp(28px,5vw,48px)">Every fire, 2015–2025</h2>
+    <p class="intro fade-in">Search by county or fire name. Filter by region or year. Click any dot for details.</p>
+    <div class="explore-controls fade-in">
+      <input type="text" id="fire-search" placeholder="Search county or fire name...">
+      <div class="region-btns" id="region-btns"></div>
+      <div class="explore-years" id="explore-years"></div>
+    </div>
+    <div class="explore-grid fade-in">
+      <div id="explore-map"></div>
+      <div>
+        <div class="explore-stats" id="explore-stats"></div>
+        <div id="explore-detail"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ACT 7: CLOSE ============ -->
+<section class="act-close">
+  <div class="sheet">
+    <h2 class="fade-in">Stop counting acres.</h2>
+    <p class="fade-in">California went from 95 fires a year to 554. Each one is smaller. But the fires that destroy neighborhoods are small. They look harmless on an acreage chart until they reach a city. More fires near cities means more chances for catastrophe.</p>
+    <p class="fade-in">That frequency has already broken the insurance market. Twelve major carriers have left or restricted California coverage since 2021. The 2017 and 2018 seasons alone produced $24 billion in insured losses and wiped out 25 years of industry profits.</p>
+    <p class="fade-in">And it is killing people who never see a flame. An estimated 52,000 Californians died from wildfire smoke between 2008 and 2018, roughly 100 times more than died in the fires. More fires scattered across the state means smoke in every air basin, in every season. The lungs never clear before the next fire starts.</p>
+    <p class="fade-in">Acres burned tells you how much land was lost. It tells you nothing about how many homes, how many lives, or how many billions. The number to watch is not acres. It is frequency, proximity, and season.</p>
+
+    <div style="margin-top:clamp(40px,7vh,80px)">
+      <div class="fig-label" style="color:#8e8270"><span class="figtag">Video</span> &ensp;A two-minute walkthrough</div>
+      <div class="videoframe" id="video-frame">Demo video will be embedded here.</div>
+    </div>
+
+    <footer class="colophon">
+      <div class="body" style="margin-bottom:34px">
+        <p><strong style="color:#fff">The question.</strong> How has wildfire destruction in California changed from 2015
+          to 2025? The easy answer is fires keep getting bigger. Our data pushed back. The typical fire has
+          gotten smaller and far more frequent, which hides three things: a handful of rare
+          megafires drive almost half of all acres burned, damage is shifting toward the populated south, and
+          fire is spilling outside its normal season into winter.</p>
+        <p><strong style="color:#fff">The views.</strong> Five D3 visualizations, each carrying one beat of the argument: a
+          bar-and-line chart with a scroll-driven reveal, a force-layout swarm of all 3,118 fires, a concentration bar,
+          a scroll-driven burn map, and a calendar spiral. We used square-root scales so a million-acre fire
+          does not swallow the view.</p>
+      </div>
+      <dl>
+        <dt>Project</dt><dd>DSC 106 Final</dd>
+        <dt>Data</dt><dd>CAL FIRE incident archive</dd>
+        <dt>Team</dt><dd>Singh · Shingade · Kanthed</dd>
+        <dt>Built with</dt><dd>D3.js · Scrollytelling</dd>
+        <dt>Type</dt><dd>Anton · Newsreader · IBM Plex Mono</dd>
+        <dt>Records</dt><dd>3,118 fires</dd>
+      </dl>
+    </footer>
+  </div>
 </section>
 
 <div class="tooltip" id="tooltip"></div>
 
-<!-- ============ video ============ -->
-<section class="blk sheet light">
-  <div class="fighead"><span class="figtag">Video</span><span class="figcap">A two-minute walkthrough of the argument and the views.</span></div>
-  <div class="videoframe" id="video-frame">Demo video coming soon. The YouTube embed will live here.</div>
-</section>
-
-<!-- ============ colophon ============ -->
-<footer class="colophon sheet light">
-  <div class="scorch"></div>
-  <div class="body" style="margin-bottom:34px">
-    <p><strong>The question.</strong> How has the destruction caused by California wildfires changed from 2015
-      to 2025? The easy answer is that fires keep getting bigger. Our data pushed back. The typical fire has
-      gotten smaller and far more frequent, which hides three things that matter more: a handful of rare
-      megafires drive almost half of all acres burned, the damage is shifting toward the populated south, and
-      fire is spilling outside its normal season into winter.</p>
-    <p><strong>The views.</strong> Five linked D3 visualizations, each carrying one beat of the argument: a
-      bar-and-line chart, a swarm of all 3,118 fires, a concentration bar, a linked map with an animated burn
-      scar and a regional stack, and a calendar spiral. We used a square-root scale so a million-acre fire
-      does not swallow the map, and held to a single fire color so intensity stays legible.</p>
-    <p><strong>The challenge.</strong> Making a counterintuitive argument legible. The honest signal is a
-      distribution, not one rising line, so we built views that show both the shrinking typical fire and the
-      dominating tail at once. Tuning scales, keeping 3,000-plus records responsive, and matching county
-      names across datasets all took real iteration.</p>
-  </div>
-  <dl>
-    <dt>Project</dt><dd>DSC 106 Final</dd>
-    <dt>Data</dt><dd>CAL FIRE incident archive</dd>
-    <dt>Team</dt><dd>Singh · Shingade · Kanthed</dd>
-    <dt>Built with</dt><dd>D3.js</dd>
-    <dt>Type</dt><dd>Anton · Newsreader · IBM Plex Mono</dd>
-    <dt>Records</dt><dd>3,118 fires</dd>
-  </dl>
-</footer>
-
 <script>
-// build the "SHRINKING" word with letters that physically shrink
 (function(){
   const word = 'Shrinking', el = document.getElementById('shrinkword');
   const base = 'clamp(46px, 12vw, 168px)';
   [...word].forEach((ch, i) => {
     const s = document.createElement('span');
-    const scale = 1 - i * 0.083;            // each letter smaller than the last
     s.textContent = ch;
-    s.style.fontSize = `calc(${base} * ${scale.toFixed(3)})`;
+    s.style.fontSize = `calc(${base} * ${(1 - i * 0.083).toFixed(3)})`;
     el.appendChild(s);
   });
 })();
 
 let RAW_DATA = [];
+const charts = {};
 
 fetch('firedata.json')
   .then(r => r.json())
-  .then(data => { RAW_DATA = data; init(); })
-  .catch(err => { console.error('data load failed', err); });
+  .then(data => { RAW_DATA = data; buildAll(); })
+  .catch(err => console.error('data load failed', err));
 
-function init() {
+function buildAll() {
   const years = d3.range(2015, 2026);
-  let selectedYear = null;
 
-  // ---------- tooltip ----------
   const tooltip = document.getElementById('tooltip');
   function showTip(e, html) { tooltip.style.display = 'block'; tooltip.innerHTML = html; moveTip(e); }
   function moveTip(e) { tooltip.style.left = (e.clientX + 14) + 'px'; tooltip.style.top = (e.clientY - 10) + 'px'; }
   function hideTip() { tooltip.style.display = 'none'; }
   document.addEventListener('mousemove', e => { if (tooltip.style.display === 'block') moveTip(e); });
 
-  // ---------- helpers ----------
   const cumDays = [0,31,59,90,120,151,181,212,243,273,304,334];
   function monthDay(d) {
     const s = String(d.date || '');
@@ -472,7 +754,6 @@ function init() {
   const median = arr => { const a = [...arr].sort((x,y)=>x-y); const n=a.length;
     return n ? (n%2 ? a[(n-1)/2] : (a[n/2-1]+a[n/2])/2) : 0; };
 
-  // ---------- regions ----------
   const regionMap = {
     'North Coast': ['Del Norte','Humboldt','Mendocino','Lake','Sonoma','Napa','Marin'],
     'Northern Interior': ['Siskiyou','Modoc','Trinity','Shasta','Lassen','Tehama','Glenn',
@@ -492,16 +773,16 @@ function init() {
   const regionColors = d3.scaleOrdinal().domain(regions)
     .range(['#5b8c6e','#ef7a4d','#6a93a6','#e9c46a','#c1121f']);
 
-  // ============================================================
-  // CHART A: dual axis — acres bars + count line
-  // ============================================================
   const perYear = years.map(yr => {
     const fires = RAW_DATA.filter(d => d.year === yr);
     return { year: yr, acres: d3.sum(fires, d => d.acres), count: fires.length,
              med: median(fires.map(d => d.acres)) };
   });
 
-  (function drawDual() {
+  // ============================================================
+  // DUAL CHART (step-driven)
+  // ============================================================
+  charts.dual = (function() {
     const W = 720, H = 360, m = { top: 24, right: 64, bottom: 40, left: 70 };
     const iw = W - m.left - m.right, ih = H - m.top - m.bottom;
     const svg = d3.select('#dual-chart').append('svg')
@@ -515,86 +796,193 @@ function init() {
     g.append('g').attr('class', 'grid')
       .call(d3.axisLeft(yA).ticks(5).tickSize(-iw).tickFormat(''));
 
-    g.selectAll('.acres-bar').data(perYear).join('rect')
+    const bars = g.selectAll('.acres-bar').data(perYear).join('rect')
       .attr('class', 'acres-bar')
       .attr('x', d => x(d.year)).attr('width', x.bandwidth())
       .attr('y', ih).attr('height', 0)
       .on('mouseover', (e,d) => showTip(e, `<strong>${d.year}</strong><br>${Math.round(d.acres).toLocaleString()} acres<br>${d.count} fires`))
-      .on('mouseout', hideTip)
-      .transition().duration(800).delay((d,i)=>i*50)
-        .attr('y', d => yA(d.acres)).attr('height', d => ih - yA(d.acres));
+      .on('mouseout', hideTip);
 
     const line = d3.line().x(d => x(d.year) + x.bandwidth()/2).y(d => yC(d.count));
-    const path = g.append('path').datum(perYear).attr('class', 'count-line').attr('d', line);
-    const L = path.node().getTotalLength();
-    path.attr('stroke-dasharray', `${L} ${L}`).attr('stroke-dashoffset', L)
-      .transition().duration(1200).delay(400).attr('stroke-dashoffset', 0);
+    const linePath = g.append('path').datum(perYear).attr('class', 'count-line').attr('d', line);
+    const lineLen = linePath.node().getTotalLength();
+    linePath.attr('stroke-dasharray', `${lineLen} ${lineLen}`).attr('stroke-dashoffset', lineLen);
 
-    g.selectAll('.count-dot').data(perYear).join('circle')
+    const dots = g.selectAll('.count-dot').data(perYear).join('circle')
       .attr('class', 'count-dot')
       .attr('cx', d => x(d.year) + x.bandwidth()/2).attr('cy', d => yC(d.count)).attr('r', 0)
       .on('mouseover', (e,d) => showTip(e, `<strong>${d.year}</strong><br>${d.count} fires`))
-      .on('mouseout', hideTip)
-      .transition().duration(400).delay((d,i)=>600+i*50).attr('r', 4);
+      .on('mouseout', hideTip);
 
     g.append('g').attr('class', 'axis').attr('transform', `translate(0,${ih})`)
       .call(d3.axisBottom(x).tickFormat(d3.format('d')));
     g.append('g').attr('class', 'axis')
       .call(d3.axisLeft(yA).ticks(5).tickFormat(d => d>=1e6 ? (d/1e6)+'M' : d>=1e3 ? (d/1e3)+'K' : d));
-    g.append('g').attr('class', 'axis').attr('transform', `translate(${iw},0)`)
-      .call(d3.axisRight(yC).ticks(5));
+    const axisR = g.append('g').attr('class', 'axis').attr('transform', `translate(${iw},0)`)
+      .call(d3.axisRight(yC).ticks(5)).attr('opacity', 0);
 
     svg.append('text').attr('class','axis-label').attr('text-anchor','middle')
       .attr('transform', `translate(16,${m.top+ih/2}) rotate(-90)`).text('ACRES BURNED');
-    svg.append('text').attr('class','axis-label').attr('text-anchor','middle').attr('fill','#ff5a1f')
-      .attr('transform', `translate(${W-14},${m.top+ih/2}) rotate(-90)`).text('NUMBER OF FIRES');
+    const labelR = svg.append('text').attr('class','axis-label').attr('text-anchor','middle').attr('fill','#ff5a1f')
+      .attr('transform', `translate(${W-14},${m.top+ih/2}) rotate(-90)`).text('NUMBER OF FIRES').attr('opacity', 0);
 
-    const annoYear = 2024;
-    const ax = m.left + x(annoYear) + x.bandwidth()/2, ay = m.top + yC(perYear.find(d=>d.year===annoYear).count);
-    svg.append('line').attr('class','anno-line').attr('x1',ax).attr('y1',ay).attr('x2',ax).attr('y2',ay-26);
-    svg.append('text').attr('class','anno').attr('x',ax).attr('y',ay-32).attr('text-anchor','middle').text('record fire count');
+    const d2020 = perYear.find(d => d.year === 2020);
+    const anno2020 = g.append('g').attr('opacity', 0);
+    anno2020.append('line').attr('class','anno-line')
+      .attr('x1', x(2020)+x.bandwidth()/2).attr('y1', yA(d2020.acres)-6)
+      .attr('x2', x(2020)+x.bandwidth()/2).attr('y2', yA(d2020.acres)-34);
+    anno2020.append('text').attr('class','anno').attr('text-anchor','middle')
+      .attr('x', x(2020)+x.bandwidth()/2).attr('y', yA(d2020.acres)-40).text('4.2M acres');
+
+    const d2024 = perYear.find(d => d.year === 2024);
+    const annoRec = g.append('g').attr('opacity', 0);
+    annoRec.append('line').attr('class','anno-line')
+      .attr('x1', x(2024)+x.bandwidth()/2).attr('y1', yC(d2024.count))
+      .attr('x2', x(2024)+x.bandwidth()/2).attr('y2', yC(d2024.count)-28);
+    annoRec.append('text').attr('class','anno').attr('text-anchor','middle')
+      .attr('x', x(2024)+x.bandwidth()/2).attr('y', yC(d2024.count)-34).text('record count');
+
+    let cur = -1;
+    function update(step) {
+      if (step === cur) return;
+      cur = step;
+      const t = svg.transition().duration(700);
+      bars.transition(t).delay((d,i) => step === 0 ? i*50 : 0)
+        .attr('y', step >= 0 ? (d => yA(d.acres)) : ih)
+        .attr('height', step >= 0 ? (d => ih - yA(d.acres)) : 0)
+        .attr('opacity', step === 1 ? (d => d.year === 2020 ? 1 : 0.3)
+                       : step === 3 ? 0.35
+                       : step === 4 ? 0.5
+                       : 1);
+      anno2020.transition(t).attr('opacity', step === 1 ? 1 : 0);
+      linePath.transition(step === 4 ? svg.transition().duration(1400) : t)
+        .attr('stroke-dashoffset', step >= 4 ? 0 : lineLen);
+      dots.transition(t).delay((d,i) => step === 4 ? 600+i*40 : 0)
+        .attr('r', step >= 4 ? 4 : 0);
+      axisR.transition(t).attr('opacity', step >= 4 ? 1 : 0);
+      labelR.transition(t).attr('opacity', step >= 4 ? 1 : 0);
+      annoRec.transition(t).attr('opacity', step >= 5 ? 1 : 0);
+    }
+    return { update };
   })();
 
   // ============================================================
-  // CHART B: concentration
+  // BEESWARM (step-driven) — only if element exists
   // ============================================================
-  (function drawConc() {
+  if (document.getElementById('beeswarm-chart')) charts.bee = (function() {
+    const W = 720, H = 320, m = { top: 14, right: 24, bottom: 50, left: 24 };
+    const iw = W - m.left - m.right, ih = H - m.top - m.bottom;
+    const svg = d3.select('#beeswarm-chart').append('svg')
+      .attr('viewBox', `0 0 ${W} ${H}`).attr('preserveAspectRatio', 'xMidYMid meet');
+    const g = svg.append('g').attr('transform', `translate(${m.left},${m.top})`);
+
+    const maxAc = d3.max(RAW_DATA, d => d.acres);
+    const xS = d3.scaleSqrt().domain([0, maxAc]).range([0, iw]);
+    const rS = d3.scaleSqrt().domain([0, maxAc]).range([1.4, 11]);
+
+    const nodes = RAW_DATA.map(d => ({
+      acres: d.acres, name: d.name, year: d.year, county: d.county,
+      region: getRegion(d.county), tx: xS(d.acres)
+    }));
+    const sim = d3.forceSimulation(nodes)
+      .force('x', d3.forceX(d => d.tx).strength(0.95))
+      .force('y', d3.forceY(ih / 2).strength(0.045))
+      .force('collide', d3.forceCollide(d => rS(d.acres) + 0.6))
+      .stop();
+    for (let i = 0; i < 180; i++) sim.tick();
+
+    const top10Set = new Set(
+      [...RAW_DATA].sort((a,b)=>b.acres-a.acres).slice(0,10).map(f=>f.name+f.year)
+    );
+
+    const sel = g.selectAll('circle').data(nodes).join('circle')
+      .attr('class', 'bee')
+      .attr('cx', d => Math.max(0, Math.min(iw, d.x)))
+      .attr('cy', d => Math.max(0, Math.min(ih, d.y)))
+      .attr('r', 0).attr('opacity', 0)
+      .attr('fill', d => d.region === 'Other' ? '#7a6e60' : regionColors(d.region))
+      .on('mouseover', (e,d) => showTip(e,
+        `<strong>${d.name.replace(/\s*\(.*$/, '')}</strong><br>${d.year} &middot; ${firstCounty(d.county)} County<br>${Math.round(d.acres).toLocaleString()} acres`))
+      .on('mouseout', hideTip);
+
+    const axis = d3.axisBottom(xS)
+      .tickValues([0, 1000, 10000, 100000, 500000, 1000000])
+      .tickFormat(d => d >= 1e6 ? (d/1e6)+'M' : d >= 1e3 ? (d/1e3)+'K' : d);
+    g.append('g').attr('class', 'axis').attr('transform', `translate(0,${ih + 8})`).call(axis);
+    svg.append('text').attr('class', 'axis-label').attr('x', W/2).attr('y', H - 6)
+      .attr('text-anchor', 'middle').text('ACRES BURNED (SQUARE-ROOT SCALE)');
+
+    const big = nodes.reduce((a, b) => b.acres > a.acres ? b : a, nodes[0]);
+    const annoLabel = g.append('text').attr('class', 'anno').attr('text-anchor', 'end')
+      .attr('x', Math.min(iw, big.x) - 14).attr('y', big.y + 3)
+      .attr('fill', '#ff5a1f').attr('font-weight', '700')
+      .text('August Complex, 1M+ acres').attr('opacity', 0);
+
+    let cur = -1;
+    function update(step) {
+      if (step === cur) return;
+      cur = step;
+      const t = svg.transition().duration(600);
+      sel.transition(t).delay((d,i) => step === 0 ? Math.min(i*0.6, 600) : 0)
+        .attr('r', step >= 0 ? (d => {
+          if (step === 2) return top10Set.has(d.name+d.year) ? rS(d.acres)*1.25 : rS(d.acres);
+          return rS(d.acres);
+        }) : 0)
+        .attr('opacity', step >= 0 ? (d => {
+          if (step === 1) return d.acres < 1000 ? 0.85 : 0.2;
+          if (step === 2) return top10Set.has(d.name+d.year) ? 1 : 0.08;
+          return 0.82;
+        }) : 0)
+        .attr('fill', d => {
+          if (step === 2 && top10Set.has(d.name+d.year)) return '#ff5a1f';
+          return d.region === 'Other' ? '#7a6e60' : regionColors(d.region);
+        });
+      annoLabel.transition(t).attr('opacity', step >= 0 ? 1 : 0);
+    }
+    return { update };
+  })();
+
+  // ============================================================
+  // CONCENTRATION BAR (static, in interlude) — guarded
+  // ============================================================
+  if (document.getElementById('conc-chart')) (function() {
     const sorted = [...RAW_DATA].sort((a,b)=>b.acres-a.acres);
     const total = d3.sum(sorted, d=>d.acres);
     const top10 = d3.sum(sorted.slice(0,10), d=>d.acres);
     const next40 = d3.sum(sorted.slice(10,50), d=>d.acres);
     const rest = total - top10 - next40;
     const segs = [
-      { label: 'Top 10 fires', val: top10, color: '#ff5a1f', n: 10 },
-      { label: 'Next 40 fires', val: next40, color: '#bd6638', n: 40 },
-      { label: `Other ${ (sorted.length-50).toLocaleString() } fires`, val: rest, color: '#5a4636', n: sorted.length-50 }
+      { label: 'Top 10 fires', val: top10, color: '#ff5a1f' },
+      { label: 'Next 40 fires', val: next40, color: '#bd6638' },
+      { label: `Other ${(sorted.length-50).toLocaleString()} fires`, val: rest, color: '#5a4636' }
     ];
-    const W = 720, H = 120, m = { left: 4, right: 4, top: 8, bottom: 44 };
-    const iw = W - m.left - m.right;
+    const W = 720, H = 110, mL = 4, mR = 4, mT = 8, mB = 44;
+    const iw = W - mL - mR;
     const svg = d3.select('#conc-chart').append('svg')
       .attr('viewBox', `0 0 ${W} ${H}`).attr('preserveAspectRatio', 'xMidYMid meet');
-    const g = svg.append('g').attr('transform', `translate(${m.left},${m.top})`);
-    const x = d3.scaleLinear().domain([0, total]).range([0, iw]);
+    const g = svg.append('g').attr('transform', `translate(${mL},${mT})`);
+    const xC = d3.scaleLinear().domain([0, total]).range([0, iw]);
     let acc = 0;
     segs.forEach(s => {
-      const x0 = x(acc); acc += s.val; const w = x(acc) - x0;
+      const x0 = xC(acc); acc += s.val; const w = xC(acc) - x0;
       g.append('rect').attr('class','conc-seg').attr('x', x0).attr('y', 0)
-        .attr('width', 0).attr('height', 46).attr('fill', s.color)
-        .on('mouseover', (e)=>showTip(e, `<strong>${s.label}</strong><br>${Math.round(s.val).toLocaleString()} acres<br>${(100*s.val/total).toFixed(0)}% of all burned`))
+        .attr('width', 0).attr('height', 42).attr('fill', s.color)
+        .on('mouseover', e => showTip(e, `<strong>${s.label}</strong><br>${Math.round(s.val).toLocaleString()} acres<br>${(100*s.val/total).toFixed(0)}%`))
         .on('mouseout', hideTip)
         .transition().duration(900).attr('width', w);
       const pct = 100*s.val/total;
-      g.append('text').attr('class','conc-label').attr('x', x0 + w/2).attr('y', 70)
-        .attr('text-anchor','middle').attr('fill', s.color === '#5a4636' ? '#a08a74' : s.color).attr('font-weight','700')
-        .attr('opacity',0).text(`${pct.toFixed(0)}%`).transition().delay(700).duration(400).attr('opacity',1);
-      g.append('text').attr('class','conc-label').attr('x', x0 + w/2).attr('y', 86)
-        .attr('text-anchor','middle').attr('fill','#8d8073').attr('opacity',0)
-        .text(s.label).transition().delay(700).duration(400).attr('opacity',1);
+      g.append('text').attr('class','conc-label').attr('x', x0+w/2).attr('y', 64)
+        .attr('text-anchor','middle').attr('fill', s.color === '#5a4636' ? '#a08a74' : s.color)
+        .attr('font-weight','700').attr('opacity',0).text(`${pct.toFixed(0)}%`)
+        .transition().delay(700).duration(400).attr('opacity',1);
+      g.append('text').attr('class','conc-label').attr('x', x0+w/2).attr('y', 80)
+        .attr('text-anchor','middle').attr('fill','#e0d3c2').attr('opacity',0).text(s.label)
+        .transition().delay(700).duration(400).attr('opacity',1);
     });
   })();
 
-  // top fires list
-  (function topFires() {
+  // top fires list — guarded
+  if (document.getElementById('topfire-list')) (function() {
     const top = [...RAW_DATA].sort((a,b)=>b.acres-a.acres).slice(0,6);
     const el = document.getElementById('topfire-list');
     top.forEach(f => {
@@ -607,202 +995,278 @@ function init() {
   })();
 
   // ============================================================
-  // CHART B2: beeswarm — every fire by size (the long tail)
+  // SCATTER PLOT: acres vs structures (step-driven)
   // ============================================================
-  (function drawBeeswarm() {
-    const W = 720, H = 320, m = { top: 14, right: 24, bottom: 50, left: 24 };
+  charts.scatter = (function() {
+    const W = 640, H = 480, m = { top: 20, right: 30, bottom: 50, left: 65 };
     const iw = W - m.left - m.right, ih = H - m.top - m.bottom;
-    const svg = d3.select('#beeswarm-chart').append('svg')
+    const svg = d3.select('#scatter-chart').append('svg')
       .attr('viewBox', `0 0 ${W} ${H}`).attr('preserveAspectRatio', 'xMidYMid meet');
     const g = svg.append('g').attr('transform', `translate(${m.left},${m.top})`);
 
-    const maxAc = d3.max(RAW_DATA, d => d.acres);
-    const x = d3.scaleSqrt().domain([0, maxAc]).range([0, iw]);
-    const r = d3.scaleSqrt().domain([0, maxAc]).range([1.4, 11]);
+    fetch('impacts.json').then(r => r.json()).then(impacts => {
+      const xS = d3.scaleLog().domain([3000, 1200000]).range([0, iw]).clamp(true);
+      const yS = d3.scaleLog().domain([3, 22000]).range([ih, 0]).clamp(true);
+      const rS = d3.scaleSqrt().domain([0, 85]).range([5, 22]);
+      const typeColor = { urban: '#ff5a1f', mixed: '#bd6638', wilderness: '#5a4636' };
 
-    const nodes = RAW_DATA.map(d => ({
-      acres: d.acres, name: d.name, year: d.year, county: d.county,
-      region: getRegion(d.county), tx: x(d.acres)
-    }));
+      g.append('g').attr('class', 'grid')
+        .call(d3.axisLeft(yS).ticks(5, '~s').tickSize(-iw).tickFormat(''));
 
-    const sim = d3.forceSimulation(nodes)
-      .force('x', d3.forceX(d => d.tx).strength(0.95))
-      .force('y', d3.forceY(ih / 2).strength(0.045))
-      .force('collide', d3.forceCollide(d => r(d.acres) + 0.6))
-      .stop();
-    for (let i = 0; i < 180; i++) sim.tick();
+      g.append('g').attr('class', 'axis').attr('transform', `translate(0,${ih})`)
+        .call(d3.axisBottom(xS).tickValues([5000,20000,100000,500000,1000000])
+          .tickFormat(d => d >= 1e6 ? '1M' : (d/1e3)+'K'));
+      g.append('g').attr('class', 'axis')
+        .call(d3.axisLeft(yS).tickValues([5,20,100,500,2000,10000])
+          .tickFormat(d => d >= 1e3 ? (d/1e3)+'K' : d));
 
-    g.selectAll('circle').data(nodes).join('circle')
-      .attr('class', 'bee')
-      .attr('cx', d => Math.max(0, Math.min(iw, d.x)))
-      .attr('cy', d => Math.max(0, Math.min(ih, d.y)))
-      .attr('r', d => r(d.acres))
-      .attr('fill', d => d.region === 'Other' ? '#7a6e60' : regionColors(d.region))
-      .attr('opacity', 0.82)
-      .on('mouseover', (e, d) => showTip(e,
-        `<strong>${d.name.replace(/\s*\(.*$/, '')}</strong><br>${d.year} &middot; ${firstCounty(d.county)} County<br>${Math.round(d.acres).toLocaleString()} acres`))
-      .on('mouseout', hideTip);
+      svg.append('text').attr('class','axis-label').attr('text-anchor','middle')
+        .attr('x', m.left + iw/2).attr('y', H - 6).text('ACRES BURNED');
+      svg.append('text').attr('class','axis-label').attr('text-anchor','middle')
+        .attr('transform', `translate(14,${m.top + ih/2}) rotate(-90)`).text('STRUCTURES DESTROYED');
 
-    const axis = d3.axisBottom(x)
-      .tickValues([0, 1000, 10000, 100000, 500000, 1000000])
-      .tickFormat(d => d >= 1e6 ? (d/1e6)+'M' : d >= 1e3 ? (d/1e3)+'K' : d);
-    g.append('g').attr('class', 'axis').attr('transform', `translate(0,${ih + 8})`).call(axis);
-    svg.append('text').attr('class', 'axis-label').attr('x', W/2).attr('y', H - 6)
-      .attr('text-anchor', 'middle').text('ACRES BURNED PER FIRE (SQUARE-ROOT SCALE)');
+      const dots = g.selectAll('.scatter-dot').data(impacts).join('circle')
+        .attr('class', 'scatter-dot')
+        .attr('cx', d => xS(d.acres)).attr('cy', d => yS(d.structures))
+        .attr('r', 0).attr('opacity', 0)
+        .attr('fill', d => typeColor[d.type] || '#7a6e60')
+        .on('mouseover', (e, d) => showTip(e,
+          `<strong>${d.name}</strong><br>${d.year} · ${d.county}<br>${d.acres.toLocaleString()} acres<br>${d.structures.toLocaleString()} structures<br>${d.fatalities} deaths`))
+        .on('mouseout', hideTip);
 
-    const big = nodes.reduce((a, b) => b.acres > a.acres ? b : a, nodes[0]);
-    g.append('text').attr('class', 'anno').attr('text-anchor', 'end')
-      .attr('x', Math.min(iw, big.x) - 14).attr('y', big.y + 3)
-      .attr('fill', '#ff5a1f').attr('font-weight', '700')
-      .text('August Complex, 1M+ acres');
+      const labels = g.selectAll('.scatter-label').data(impacts.filter(d =>
+        ['Eaton Fire','Camp Fire','August Complex','Palisades Fire','Dixie Fire','Tubbs Fire'].includes(d.name)
+      )).join('text').attr('class', 'scatter-label')
+        .attr('x', d => xS(d.acres)).attr('y', d => yS(d.structures) - rS(d.fatalities) - 5)
+        .attr('text-anchor', d => d.acres > 500000 ? 'end' : 'start')
+        .text(d => d.name.replace(' Fire', '')).attr('opacity', 0);
+
+      let curS = -1;
+      scatterUpdate = function(step) {
+        if (step === curS) return;
+        curS = step;
+        const t = svg.transition().duration(600);
+
+        dots.transition(t).delay((d, i) => step === 0 ? i * 30 : 0)
+          .attr('r', d => rS(Math.max(d.fatalities, 1)))
+          .attr('opacity', step >= 0 ? (d => {
+            if (step === 2) return d.name === 'Eaton Fire' ? 1 : 0.12;
+            if (step === 3) return d.name === 'August Complex' ? 1 : 0.12;
+            if (step === 4) return d.type === 'urban' ? 1 : (d.type === 'wilderness' ? 0.3 : 0.5);
+            return 0.85;
+          }) : 0)
+          .attr('fill', d => {
+            if (step === 2 && d.name === 'Eaton Fire') return '#ff5a1f';
+            if (step === 3 && d.name === 'August Complex') return '#5a4636';
+            if (step === 4) return typeColor[d.type];
+            return typeColor[d.type] || '#7a6e60';
+          });
+
+        labels.transition(t)
+          .attr('opacity', step >= 1 ? (d => {
+            if (step === 2) return d.name === 'Eaton Fire' ? 1 : 0;
+            if (step === 3) return (d.name === 'August Complex' || d.name === 'Eaton Fire') ? 1 : 0;
+            return 1;
+          }) : 0);
+      };
+      const pending = document.getElementById('act-cost')?.dataset.activeStep;
+      if (pending != null) scatterUpdate(parseInt(pending));
+    });
+
+    let scatterUpdate = function() {};
+    let pendingStep = -1;
+    function update(step) {
+      pendingStep = step;
+      scatterUpdate(step);
+    }
+    return { update };
   })();
 
   // ============================================================
-  // CHART C1: map
+  // FAIR PLAN CHART (static, in interlude) — guarded
   // ============================================================
-  const filterContainer = document.getElementById('year-filters');
-  const allBtn = document.createElement('button');
-  allBtn.className = 'year-btn active'; allBtn.textContent = 'All';
-  allBtn.addEventListener('click', () => { selectedYear = null; refresh(); });
-  filterContainer.appendChild(allBtn);
-  years.forEach(yr => {
-    const btn = document.createElement('button');
-    btn.className = 'year-btn'; btn.textContent = yr;
-    btn.addEventListener('click', () => { selectedYear = selectedYear === yr ? null : yr; refresh(); });
-    filterContainer.appendChild(btn);
-  });
-  function updateButtons() {
-    document.querySelectorAll('#year-filters .year-btn').forEach(b => {
-      const yr = parseInt(b.textContent);
-      b.classList.toggle('active', isNaN(yr) ? selectedYear === null : yr === selectedYear);
-    });
-  }
+  if (document.getElementById('fair-chart')) (function drawFair() {
+    const fair = [
+      {year:2015,p:141391},{year:2016,p:141192},{year:2017,p:140312},{year:2018,p:140447},
+      {year:2019,p:189790},{year:2020,p:222091},{year:2021,p:246807},{year:2022,p:271000},
+      {year:2023,p:339044},{year:2024,p:452000},{year:2025,p:668609}
+    ];
+    const W = 600, H = 240, m = { top: 16, right: 20, bottom: 36, left: 60 };
+    const iw = W - m.left - m.right, ih = H - m.top - m.bottom;
+    const svg = d3.select('#fair-chart').append('svg')
+      .attr('viewBox', `0 0 ${W} ${H}`).attr('preserveAspectRatio', 'xMidYMid meet');
+    const g = svg.append('g').attr('transform', `translate(${m.left},${m.top})`);
 
-  const MW = 460, MH = 560;
-  const mapSvg = d3.select('#map-chart').append('svg')
-    .attr('viewBox', `0 0 ${MW} ${MH}`).attr('preserveAspectRatio', 'xMidYMid meet');
-  const proj = d3.geoMercator().center([-119.5, 37.4]).scale(2400).translate([MW/2, MH/2]);
+    const x = d3.scaleLinear().domain([2015, 2025]).range([0, iw]);
+    const y = d3.scaleLinear().domain([0, 700000]).range([ih, 0]);
 
-  const defs = mapSvg.append('defs');
-  const eg = defs.append('radialGradient').attr('id', 'ember')
-    .attr('cx', '50%').attr('cy', '50%').attr('r', '50%');
-  eg.append('stop').attr('offset', '0%').attr('stop-color', '#fff1c2');
-  eg.append('stop').attr('offset', '45%').attr('stop-color', '#ff8a1f');
-  eg.append('stop').attr('offset', '100%').attr('stop-color', '#c01e00');
+    g.append('g').attr('class', 'grid')
+      .call(d3.axisLeft(y).ticks(4).tickSize(-iw).tickFormat(''));
+    g.append('g').attr('class', 'axis').attr('transform', `translate(0,${ih})`)
+      .call(d3.axisBottom(x).ticks(6).tickFormat(d3.format('d')));
+    g.append('g').attr('class', 'axis')
+      .call(d3.axisLeft(y).ticks(4).tickFormat(d => (d/1e3) + 'K'));
 
-  const outlineGroup = mapSvg.append('g');
-  const scarGroup = mapSvg.append('g');
-  const dotsGroup = mapSvg.append('g');
-  const rScale = d3.scaleSqrt().domain([0, d3.max(RAW_DATA, d => d.acres)]).range([2, 20]);
+    const area = d3.area().x(d => x(d.year)).y0(ih).y1(d => y(d.p))
+      .curve(d3.curveMonotoneX);
+    const line = d3.line().x(d => x(d.year)).y(d => y(d.p))
+      .curve(d3.curveMonotoneX);
 
-  function addScar(yr) {
-    const fires = RAW_DATA.filter(d => d.year === yr);
-    scarGroup.selectAll('.scar-y' + yr).data(fires).join('circle')
-      .attr('class', 'scar scar-y' + yr)
+    g.append('path').datum(fair).attr('class', 'fair-area').attr('d', area);
+    const linePath = g.append('path').datum(fair).attr('class', 'fair-line').attr('d', line);
+    const lineLen = linePath.node().getTotalLength();
+    linePath.attr('stroke-dasharray', `${lineLen} ${lineLen}`).attr('stroke-dashoffset', lineLen)
+      .transition().duration(1500).delay(300).attr('stroke-dashoffset', 0);
+
+    g.selectAll('.fair-dot').data(fair).join('circle')
+      .attr('class', 'fair-dot').attr('cx', d => x(d.year)).attr('cy', d => y(d.p))
+      .attr('r', 0).transition().duration(400).delay((d, i) => 600 + i * 80).attr('r', 3);
+
+    g.append('text').attr('class', 'anno').attr('x', x(2025) + 4).attr('y', y(668609) - 8)
+      .attr('fill', '#ff5a1f').attr('font-weight', '700').attr('font-size', '12px')
+      .text('668K').attr('opacity', 0).transition().delay(1600).duration(400).attr('opacity', 1);
+
+    svg.append('text').attr('class','axis-label').attr('text-anchor','middle')
+      .attr('transform', `translate(14,${m.top + ih/2}) rotate(-90)`).text('POLICIES');
+  })();
+
+  // ============================================================
+  // MAP (step-driven)
+  // ============================================================
+  charts.map = (function() {
+    const MW = 460, MH = 480;
+    const svg = d3.select('#map-chart').append('svg')
+      .attr('viewBox', `0 0 ${MW} ${MH}`).attr('preserveAspectRatio', 'xMidYMid meet');
+    const proj = d3.geoMercator().center([-119.5, 37.2]).scale(2100).translate([MW/2, MH/2]);
+
+    const defs = svg.append('defs');
+    const eg = defs.append('radialGradient').attr('id', 'ember')
+      .attr('cx','50%').attr('cy','50%').attr('r','50%');
+    eg.append('stop').attr('offset','0%').attr('stop-color','#fff1c2');
+    eg.append('stop').attr('offset','45%').attr('stop-color','#ff8a1f');
+    eg.append('stop').attr('offset','100%').attr('stop-color','#c01e00');
+
+    const outG = svg.append('g');
+    const scarG = svg.append('g');
+    const dotG = svg.append('g');
+    const rScale = d3.scaleSqrt().domain([0, d3.max(RAW_DATA, d => d.acres)]).range([2, 18]);
+
+    fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json')
+      .then(r => r.json())
+      .then(us => {
+        const ca = us.features.find(f => f.properties.name === 'California');
+        if (ca) outG.append('path').datum(ca)
+          .attr('d', d3.geoPath().projection(proj)).attr('class', 'ca-outline');
+      }).catch(()=>{});
+
+    const sorted = [...RAW_DATA].sort((a,b) => b.acres - a.acres);
+    const fireDots = dotG.selectAll('.fire-dot').data(sorted, d => d.name+d.year+d.lat)
+      .join('circle').attr('class', 'fire-dot').attr('fill', 'url(#ember)')
       .attr('cx', d => proj([d.lon, d.lat])[0]).attr('cy', d => proj([d.lon, d.lat])[1])
-      .attr('r', d => rScale(d.acres) * 1.6).attr('fill', '#9c3000').attr('opacity', 0)
-      .transition().duration(350).attr('opacity', 0.28);
-  }
-  function clearScar() { scarGroup.selectAll('*').remove(); }
+      .attr('r', d => rScale(d.acres)).attr('opacity', 0)
+      .on('mouseover', (e,d) => showTip(e,
+        `<strong>${d.name}</strong><br>${firstCounty(d.county)} County, ${d.year}<br>${d.acres.toLocaleString()} acres`))
+      .on('mouseout', hideTip);
 
-  fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json')
-    .then(r => r.json())
-    .then(us => {
-      const ca = us.features.find(f => f.properties.name === 'California');
-      if (ca) outlineGroup.append('path').datum(ca)
-        .attr('d', d3.geoPath().projection(proj)).attr('class', 'ca-outline');
-    }).catch(()=>{});
+    const cities = [
+      {name:'Los Angeles',lat:34.05,lon:-118.24},
+      {name:'San Francisco',lat:37.77,lon:-122.42},
+      {name:'Sacramento',lat:38.58,lon:-121.49},
+      {name:'San Diego',lat:32.72,lon:-117.16},
+      {name:'San Jose',lat:37.34,lon:-121.89},
+      {name:'Fresno',lat:36.74,lon:-119.77},
+      {name:'Santa Rosa',lat:38.44,lon:-122.71},
+      {name:'Redding',lat:40.59,lon:-122.39},
+    ];
+    const cityG = svg.append('g');
+    cities.forEach(c => {
+      const [cx, cy] = proj([c.lon, c.lat]);
+      cityG.append('rect').attr('class','city-marker')
+        .attr('x', cx-3).attr('y', cy-3).attr('width', 6).attr('height', 6)
+        .attr('transform', `rotate(45,${cx},${cy})`);
+      cityG.append('text').attr('class','city-label')
+        .attr('x', cx + 8).attr('y', cy + 3).text(c.name);
+    });
 
-  function drawDots() {
-    const visible = selectedYear ? RAW_DATA.filter(d => d.year === selectedYear) : RAW_DATA;
-    const sorted = [...visible].sort((a,b)=>b.acres-a.acres);
-    dotsGroup.selectAll('.fire-dot').data(sorted, d => d.name + d.year + d.lat).join(
-      enter => enter.append('circle').attr('class', 'fire-dot').attr('fill', 'url(#ember)')
-        .attr('cx', d => proj([d.lon, d.lat])[0]).attr('cy', d => proj([d.lon, d.lat])[1])
-        .attr('r', d => rScale(d.acres))
-        .on('mouseover', (e,d) => showTip(e,
-          `<strong>${d.name}</strong><br>${firstCounty(d.county)} County, ${d.year}<br>${d.acres.toLocaleString()} acres`))
-        .on('mouseout', hideTip),
-      update => update.attr('cx', d => proj([d.lon, d.lat])[0]).attr('cy', d => proj([d.lon, d.lat])[1])
-        .attr('r', d => rScale(d.acres)),
-      exit => exit.remove()
-    );
-  }
+    const yearBands = [
+      [2015,2016,2017,2018],
+      [2015,2016,2017,2018,2019,2020],
+      [2015,2016,2017,2018,2019,2020,2021,2022,2023],
+      [2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025]
+    ];
+    const bigNames = ['Mendocino Complex','Creek','August Complex'];
+
+    const annoG = svg.append('g');
+    const annoData = [
+      { name:'August Complex', label:'August Complex\n1M acres', step:1 },
+      { name:'Mendocino Complex', label:'Mendocino\n459K ac', step:1 },
+      { name:'Creek', label:'Creek\n380K ac', step:1 },
+    ];
+    const annos = annoData.map(a => {
+      const fire = sorted.find(d => d.name.includes(a.name));
+      if (!fire) return null;
+      const [fx, fy] = [proj([fire.lon, fire.lat])[0], proj([fire.lon, fire.lat])[1]];
+      const gA = annoG.append('g').attr('opacity', 0);
+      gA.append('circle').attr('cx', fx).attr('cy', fy)
+        .attr('r', rScale(fire.acres) + 6).attr('fill', 'none')
+        .attr('stroke', '#fff').attr('stroke-width', 1.5).attr('stroke-dasharray', '4 3');
+      const lines = a.label.split('\n');
+      gA.append('text').attr('class','anno').attr('x', fx + rScale(fire.acres) + 10).attr('y', fy - 4)
+        .attr('fill','#fff').attr('font-weight','700').text(lines[0]);
+      if (lines[1]) gA.append('text').attr('class','anno').attr('x', fx + rScale(fire.acres) + 10).attr('y', fy + 10)
+        .attr('fill','#9a8d7a').text(lines[1]);
+      return { g: gA, step: a.step };
+    }).filter(Boolean);
+
+    const laAnno = annoG.append('g').attr('opacity', 0);
+    const laFires = sorted.filter(d => d.year === 2025 && d.county.includes('Los Angeles'));
+    if (laFires.length) {
+      const lf = laFires[0];
+      const [lx, ly] = proj([lf.lon, lf.lat]);
+      laAnno.append('circle').attr('cx', lx).attr('cy', ly).attr('r', 24)
+        .attr('fill', 'none').attr('stroke', '#fff').attr('stroke-width', 2).attr('stroke-dasharray', '4 3');
+      laAnno.append('text').attr('class','anno').attr('x', lx + 28).attr('y', ly - 4)
+        .attr('fill','#fff').attr('font-weight','700').text('Palisades + Eaton');
+      laAnno.append('text').attr('class','anno').attr('x', lx + 28).attr('y', ly + 10)
+        .attr('fill','#9a8d7a').text('Jan 2025 · LA');
+    }
+
+    let cur = -1;
+    function update(step) {
+      if (step === cur) return;
+      cur = step;
+      const yrs = new Set(yearBands[Math.min(step, yearBands.length-1)] || []);
+      fireDots.transition().duration(500)
+        .attr('opacity', d => {
+          if (!yrs.has(d.year)) return 0;
+          if (step === 0) return d.lat > 37 ? 0.82 : 0.12;
+          if (step === 1) return bigNames.some(n => d.name.includes(n)) ? 1 : 0.1;
+          if (step === 2) return d.lat < 36 ? 0.85 : 0.18;
+          if (step === 3) return d.year >= 2024 ? 1 : 0.08;
+          return 0.72;
+        })
+        .attr('r', d => {
+          if (!yrs.has(d.year)) return 0;
+          if (step === 1 && bigNames.some(n => d.name.includes(n))) return rScale(d.acres) * 1.3;
+          if (step === 3 && d.year >= 2024) return rScale(d.acres) * 1.4;
+          return rScale(d.acres);
+        });
+      annos.forEach(a => a.g.transition().duration(500).attr('opacity', step === a.step ? 1 : 0));
+      laAnno.transition().duration(500).attr('opacity', step === 3 ? 1 : 0);
+    }
+    return { update };
+  })();
 
   // ============================================================
-  // CHART C2: stacked region bar
+  // SPIRAL (step-driven)
   // ============================================================
-  const legendEl = document.getElementById('bar-legend');
-  fetch('https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/california-counties.geojson')
-    .then(r => r.json())
-    .then(caCounties => {
-      const miniW = 36, miniH = 50;
-      const miniProj = d3.geoMercator().center([-119.5, 37.4]).scale(190).translate([miniW/2, miniH/2]);
-      const miniPath = d3.geoPath().projection(miniProj);
-      regions.forEach(r => {
-        const item = document.createElement('div'); item.className = 'legend-item';
-        const svg = d3.select(item).append('svg').attr('width', miniW).attr('height', miniH);
-        svg.selectAll('.bg').data(caCounties.features).join('path')
-          .attr('d', miniPath).attr('fill', '#473a30').attr('stroke', '#5d4d40').attr('stroke-width', 0.3);
-        const rCounties = regionMap[r];
-        svg.selectAll('.hl').data(caCounties.features.filter(f => rCounties.includes(f.properties.name)))
-          .join('path').attr('d', miniPath).attr('fill', regionColors(r)).attr('stroke', '#15110d').attr('stroke-width', 0.3);
-        const label = document.createElement('span'); label.textContent = r; item.appendChild(label);
-        legendEl.appendChild(item);
-      });
-    }).catch(()=>{});
-
-  const stackData = years.map(yr => {
-    const row = { year: yr }; regions.forEach(r => row[r] = 0);
-    RAW_DATA.filter(d => d.year === yr).forEach(d => { const r = getRegion(d.county); if (row[r] !== undefined) row[r] += d.acres; });
-    return row;
-  });
-  const series = d3.stack().keys(regions)(stackData);
-
-  const BW = 460, BH = 360, bM = { top: 16, right: 14, bottom: 40, left: 60 };
-  const biw = BW - bM.left - bM.right, bih = BH - bM.top - bM.bottom;
-  const barSvg = d3.select('#bar-chart').append('svg')
-    .attr('viewBox', `0 0 ${BW} ${BH}`).attr('preserveAspectRatio', 'xMidYMid meet');
-  const barG = barSvg.append('g').attr('transform', `translate(${bM.left},${bM.top})`);
-  const xBar = d3.scaleBand().domain(years).range([0, biw]).padding(0.2);
-  const yMax = d3.max(stackData, d => regions.reduce((s,r)=>s+d[r], 0));
-  const yBar = d3.scaleLinear().domain([0, yMax]).nice().range([bih, 0]);
-
-  barG.append('g').attr('class', 'axis').attr('transform', `translate(0,${bih})`)
-    .call(d3.axisBottom(xBar).tickFormat(d3.format('d'))).selectAll('text')
-    .attr('transform','rotate(-45)').attr('text-anchor','end');
-  barG.append('g').attr('class', 'axis')
-    .call(d3.axisLeft(yBar).ticks(5).tickFormat(d => d>=1e6 ? (d/1e6)+'M' : d>=1e3 ? (d/1e3)+'K' : d));
-
-  barG.selectAll('g.series').data(series).join('g').attr('class','series')
-    .attr('fill', d => regionColors(d.key))
-    .selectAll('rect').data(d => d.map(seg => ({ ...seg, region: d.key }))).join('rect')
-    .attr('class', 'stacked-bar')
-    .attr('x', d => xBar(d.data.year)).attr('width', xBar.bandwidth())
-    .attr('y', d => yBar(d[1])).attr('height', d => yBar(d[0]) - yBar(d[1]))
-    .on('click', (e,d) => { selectedYear = selectedYear === d.data.year ? null : d.data.year; refresh(); })
-    .on('mouseover', (e,d) => {
-      const acres = d[1]-d[0]; const total = regions.reduce((s,r)=>s+d.data[r], 0);
-      showTip(e, `<strong>${d.data.year} &middot; ${d.region}</strong><br>${Math.round(acres).toLocaleString()} acres<br>${Math.round(total).toLocaleString()} total`);
-    })
-    .on('mouseout', hideTip);
-
-  function updateBars() {
-    barG.selectAll('.stacked-bar')
-      .attr('opacity', d => selectedYear === null || d.data.year === selectedYear ? 0.9 : 0.2);
-  }
-
-  // ============================================================
-  // CHART C3: fire season spiral
-  // ============================================================
-  let spiralPlay = null;
-  spiralPlay = (function drawSpiral() {
-    const S = 560, cx = S/2, cy = S/2;
+  charts.spiral = (function() {
+    const S = 520, cx = S/2, cy = S/2;
     const svg = d3.select('#spiral-chart').append('svg')
       .attr('viewBox', `0 0 ${S} ${S}`).attr('preserveAspectRatio', 'xMidYMid meet');
-    const r0 = 52, rMax = 246, step = (rMax - r0) / 11;
+    const r0 = 48, rMax = 230, step = (rMax - r0) / 11;
     const maxAc = d3.max(RAW_DATA, d => d.acres);
-    const rDot = d3.scaleSqrt().domain([0, maxAc]).range([0.9, 9]);
+    const rDot = d3.scaleSqrt().domain([0, maxAc]).range([0.8, 8]);
     const col = d3.scaleSequential(d3.interpolateYlOrRd).domain([0, Math.sqrt(maxAc)]);
     const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const SANS = "'IBM Plex Mono', ui-monospace, monospace";
@@ -812,26 +1276,44 @@ function init() {
       svg.append('line').attr('x1', cx).attr('y1', cy)
         .attr('x2', cx + rMax*Math.cos(ang)).attr('y2', cy + rMax*Math.sin(ang))
         .attr('stroke', '#3a2c22').attr('stroke-width', 0.5);
-      svg.append('text').attr('x', cx + (rMax+18)*Math.cos(ang)).attr('y', cy + (rMax+18)*Math.sin(ang))
-        .attr('fill', '#9a8d7a').attr('font-size', 11).attr('font-family', SANS)
+      svg.append('text').attr('x', cx + (rMax+16)*Math.cos(ang)).attr('y', cy + (rMax+16)*Math.sin(ang))
+        .attr('fill', '#9a8d7a').attr('font-size', 10).attr('font-family', SANS)
         .attr('text-anchor', 'middle').attr('dy', '0.35em').text(mn);
     });
 
-    // chronological order so the timelapse spirals outward through the decade
+    const seasonWedge = svg.append('path')
+      .attr('d', d3.arc()
+        .innerRadius(r0 - 6).outerRadius(rMax + 4)
+        .startAngle(2 * Math.PI * (121/365))
+        .endAngle(2 * Math.PI * (334/365))())
+      .attr('transform', `translate(${cx},${cy})`)
+      .attr('fill', 'rgba(255, 90, 31, 0.05)')
+      .attr('stroke', 'rgba(255, 90, 31, 0.12)')
+      .attr('stroke-width', 0.5);
+
+    const wedgeLabelAng = (-90 + 360 * 0.66) * Math.PI / 180;
+    svg.append('text')
+      .attr('x', cx + (rMax + 34) * Math.cos(wedgeLabelAng))
+      .attr('y', cy + (rMax + 34) * Math.sin(wedgeLabelAng))
+      .attr('fill', 'rgba(255, 90, 31, 0.35)').attr('font-size', 8).attr('font-family', SANS)
+      .attr('text-anchor', 'middle').attr('letter-spacing', '.08em')
+      .text('TRADITIONAL FIRE SEASON');
+
     const dots = RAW_DATA.map(d => {
       const frac = yearFrac(d);
       const t = (d.year - 2015) + frac;
       const r = r0 + step * t;
       const ang = (-90 + 360*frac) * Math.PI/180;
+      const inSeason = frac >= (121/365) && frac <= (334/365);
       return { x: cx + r*Math.cos(ang), y: cy + r*Math.sin(ang),
-               a: d.acres, name: d.name, year: d.year, county: d.county, t };
+               a: d.acres, name: d.name, year: d.year, county: d.county, t, inSeason };
     }).sort((a, b) => a.t - b.t);
 
     const sel = svg.append('g').selectAll('circle').data(dots).join('circle')
       .attr('cx', d => d.x).attr('cy', d => d.y).attr('r', 0)
-      .attr('fill', d => col(Math.sqrt(d.a))).attr('opacity', 0.9)
+      .attr('fill', d => col(Math.sqrt(d.a))).attr('opacity', 0)
       .style('cursor', 'pointer')
-      .on('mouseover', (e, d) => showTip(e,
+      .on('mouseover', (e,d) => showTip(e,
         `<strong>${d.name.replace(/\s*\(.*$/, '')}</strong><br>${d.year} &middot; ${firstCounty(d.county)} County<br>${Math.round(d.a).toLocaleString()} acres`))
       .on('mouseout', hideTip);
 
@@ -842,83 +1324,562 @@ function init() {
         .attr('fill', '#7d7160').attr('font-size', 9).attr('font-family', SANS).text(y);
     });
 
-    // ticking year counter at the eye of the spiral
-    const counter = svg.append('text').attr('x', cx).attr('y', cy).attr('text-anchor', 'middle')
-      .attr('dy', '0.34em').attr('font-family', SANS).attr('font-size', 30).attr('font-weight', 600)
-      .attr('fill', '#ff5a1f').attr('opacity', 0).text('');
+    const yearBands = [
+      [2015,2016,2017],
+      [2015,2016,2017,2018,2019,2020],
+      [2015,2016,2017,2018,2019,2020,2021,2022,2023],
+      [2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025]
+    ];
 
-    let running = false;
-    function timelapse() {
-      if (running) return; running = true;
-      sel.interrupt().attr('r', 0);
-      counter.interrupt().attr('opacity', 1).text('2015');
-      const dur = 6500, n = dots.length;
-      sel.transition().delay((d, i) => dur * i / n).duration(260).attr('r', d => rDot(d.a));
-      const start = performance.now();
-      const tk = setInterval(() => {
-        const p = Math.min(1, (performance.now() - start) / dur);
-        counter.text(String(2015 + Math.min(10, Math.floor(p * 11))));
-        if (p >= 1) { clearInterval(tk); running = false; counter.transition().delay(500).duration(700).attr('opacity', 0); }
-      }, 70);
+    let cur = -1;
+    function update(st) {
+      if (st === cur) return;
+      cur = st;
+      const yrs = new Set(yearBands[Math.min(st, yearBands.length-1)] || []);
+      const highlightOutside = st >= 3;
+      sel.transition().duration(500).delay((d,i) => yrs.has(d.year) ? Math.min(i*0.5, 400) : 0)
+        .attr('r', d => {
+          if (!yrs.has(d.year)) return 0;
+          if (highlightOutside && !d.inSeason) return rDot(d.a) * 1.4;
+          return rDot(d.a);
+        })
+        .attr('opacity', d => {
+          if (!yrs.has(d.year)) return 0;
+          if (highlightOutside && d.inSeason) return 0.5;
+          return 0.9;
+        });
+      seasonWedge.transition().duration(500)
+        .attr('fill', highlightOutside ? 'rgba(255, 90, 31, 0.08)' : 'rgba(255, 90, 31, 0.05)')
+        .attr('stroke', highlightOutside ? 'rgba(255, 90, 31, 0.25)' : 'rgba(255, 90, 31, 0.12)');
     }
-    return timelapse;
+    return { update };
   })();
 
   // ============================================================
-  // refresh + play
+  // EXPLORE
   // ============================================================
-  function refresh() { updateButtons(); drawDots(); updateBars(); }
-  drawDots(); updateBars();
+  (function buildExplore() {
+    const MW = 460, MH = 560;
+    const svg = d3.select('#explore-map').append('svg')
+      .attr('viewBox', `0 0 ${MW} ${MH}`).attr('preserveAspectRatio', 'xMidYMid meet');
+    const proj = d3.geoMercator().center([-119.5, 37.4]).scale(2400).translate([MW/2, MH/2]);
+    const rScale = d3.scaleSqrt().domain([0, d3.max(RAW_DATA, d => d.acres)]).range([2, 18]);
 
-  let playTimer = null;
-  const playBtn = document.getElementById('play-btn');
-  playBtn.addEventListener('click', () => {
-    if (playTimer) { clearInterval(playTimer); playTimer = null; playBtn.innerHTML = '&#9654; Play 2015&ndash;2025'; return; }
-    playBtn.innerHTML = '&#9632; Stop';
-    clearScar();
-    let i = 0;
-    selectedYear = years[0]; refresh(); addScar(years[0]);
-    playTimer = setInterval(() => {
-      i++;
-      if (i >= years.length) {
-        clearInterval(playTimer); playTimer = null;
-        selectedYear = null; refresh();
-        playBtn.innerHTML = '&#9654; Replay 2015&ndash;2025';
-        return;
+    const defs = svg.append('defs');
+    const eg = defs.append('radialGradient').attr('id', 'ember-ex')
+      .attr('cx','50%').attr('cy','50%').attr('r','50%');
+    eg.append('stop').attr('offset','0%').attr('stop-color','#fff1c2');
+    eg.append('stop').attr('offset','45%').attr('stop-color','#ff8a1f');
+    eg.append('stop').attr('offset','100%').attr('stop-color','#c01e00');
+
+    fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json')
+      .then(r => r.json())
+      .then(us => {
+        const ca = us.features.find(f => f.properties.name === 'California');
+        if (ca) svg.insert('path', ':first-child').datum(ca)
+          .attr('d', d3.geoPath().projection(proj)).attr('class', 'ca-outline');
+      }).catch(()=>{});
+
+    const sorted = [...RAW_DATA].sort((a,b) => b.acres - a.acres);
+    const dotG = svg.append('g');
+    const exDots = dotG.selectAll('.fire-dot').data(sorted, d => d.name+d.year+d.lat)
+      .join('circle').attr('class', 'fire-dot').attr('fill', 'url(#ember-ex)')
+      .attr('cx', d => proj([d.lon, d.lat])[0]).attr('cy', d => proj([d.lon, d.lat])[1])
+      .attr('r', d => rScale(d.acres)).attr('opacity', 0.72)
+      .on('mouseover', (e,d) => showTip(e,
+        `<strong>${d.name}</strong><br>${d.year} · ${firstCounty(d.county)}<br>${d.acres.toLocaleString()} acres`))
+      .on('mouseout', hideTip)
+      .on('click', (e,d) => showDetail(d));
+
+    const exCities = [
+      {name:'Los Angeles',lat:34.05,lon:-118.24},{name:'San Francisco',lat:37.77,lon:-122.42},
+      {name:'Sacramento',lat:38.58,lon:-121.49},{name:'San Diego',lat:32.72,lon:-117.16},
+      {name:'San Jose',lat:37.34,lon:-121.89},{name:'Fresno',lat:36.74,lon:-119.77},
+      {name:'Santa Rosa',lat:38.44,lon:-122.71},{name:'Redding',lat:40.59,lon:-122.39},
+    ];
+    const exCityG = svg.append('g');
+    exCities.forEach(c => {
+      const [cx, cy] = proj([c.lon, c.lat]);
+      exCityG.append('rect').attr('class','city-marker')
+        .attr('x', cx-3).attr('y', cy-3).attr('width', 6).attr('height', 6)
+        .attr('transform', `rotate(45,${cx},${cy})`);
+      exCityG.append('text').attr('class','city-label')
+        .attr('x', cx + 8).attr('y', cy + 3).text(c.name);
+    });
+
+    let searchTerm = '', activeRegion = null, activeYear = null;
+
+    function filterData() {
+      return RAW_DATA.filter(d => {
+        if (activeYear && d.year !== activeYear) return false;
+        if (activeRegion && getRegion(d.county) !== activeRegion) return false;
+        if (searchTerm) {
+          const q = searchTerm.toLowerCase();
+          if (!d.name.toLowerCase().includes(q) && !d.county.toLowerCase().includes(q)) return false;
+        }
+        return true;
+      });
+    }
+
+    function refresh() {
+      const filtered = filterData();
+      const fSet = new Set(filtered.map(d => d.name+d.year+d.lat));
+      exDots.transition().duration(300)
+        .attr('opacity', d => fSet.has(d.name+d.year+d.lat) ? 0.78 : 0.04)
+        .attr('r', d => fSet.has(d.name+d.year+d.lat) ? rScale(d.acres) : rScale(d.acres)*0.4);
+      updateStats(filtered);
+    }
+
+    function updateStats(data) {
+      const el = document.getElementById('explore-stats');
+      const total = d3.sum(data, d => d.acres);
+      const med = data.length ? median(data.map(d => d.acres)) : 0;
+      const biggest = data.length ? data.reduce((a,b) => b.acres > a.acres ? b : a) : null;
+      el.innerHTML = `
+        <div class="stat-row"><span class="stat-label">Fires</span><span class="stat-val">${data.length.toLocaleString()}</span></div>
+        <div class="stat-row"><span class="stat-label">Total acres</span><span class="stat-val">${Math.round(total).toLocaleString()}</span></div>
+        <div class="stat-row"><span class="stat-label">Median size</span><span class="stat-val">${Math.round(med).toLocaleString()} ac</span></div>
+        <div class="stat-row"><span class="stat-label">Largest</span><span class="stat-val">${biggest ? biggest.name.replace(/\s*\(.*$/,'') : '—'}</span></div>
+        <div class="stat-row"><span class="stat-label">Largest acres</span><span class="stat-val">${biggest ? Math.round(biggest.acres).toLocaleString() : '—'}</span></div>
+      `;
+    }
+
+    function showDetail(d) {
+      document.getElementById('explore-detail').innerHTML = `
+        <div class="fire-detail-card">
+          <div class="fd-name">${d.name.replace(/\s*\(.*$/,'')}</div>
+          <div>${d.year} · ${firstCounty(d.county)} County</div>
+          <div>${Math.round(d.acres).toLocaleString()} acres · ${d.containment || 'N/A'}</div>
+          <div style="margin-top:4px;color:#6c5b46">Region: ${getRegion(d.county)}</div>
+        </div>`;
+    }
+
+    document.getElementById('fire-search').addEventListener('input', e => { searchTerm = e.target.value; refresh(); });
+
+    const regionC = document.getElementById('region-btns');
+    const allR = document.createElement('button');
+    allR.className = 'region-btn active'; allR.textContent = 'All';
+    allR.addEventListener('click', () => { activeRegion = null; updRBtns(); refresh(); });
+    regionC.appendChild(allR);
+    regions.forEach(r => {
+      const btn = document.createElement('button');
+      btn.className = 'region-btn'; btn.textContent = r;
+      btn.dataset.color = regionColors(r);
+      btn.addEventListener('click', () => { activeRegion = activeRegion === r ? null : r; updRBtns(); refresh(); });
+      regionC.appendChild(btn);
+    });
+    function updRBtns() {
+      document.querySelectorAll('#region-btns .region-btn').forEach(b => {
+        const isActive = b.textContent === 'All' ? !activeRegion : b.textContent === activeRegion;
+        b.classList.toggle('active', isActive);
+        if (isActive && b.dataset.color) {
+          b.style.backgroundColor = b.dataset.color;
+          b.style.borderColor = b.dataset.color;
+          b.style.color = '#1a0f08';
+        } else {
+          b.style.backgroundColor = '';
+          b.style.borderColor = '';
+          b.style.color = '';
+        }
+      });
+    }
+
+    const yearC = document.getElementById('explore-years');
+    const allY = document.createElement('button');
+    allY.className = 'yr-btn active'; allY.textContent = 'All';
+    allY.addEventListener('click', () => { activeYear = null; updYBtns(); refresh(); });
+    yearC.appendChild(allY);
+    years.forEach(yr => {
+      const btn = document.createElement('button');
+      btn.className = 'yr-btn'; btn.textContent = yr;
+      btn.addEventListener('click', () => { activeYear = activeYear === yr ? null : yr; updYBtns(); refresh(); });
+      yearC.appendChild(btn);
+    });
+    function updYBtns() {
+      document.querySelectorAll('#explore-years .yr-btn').forEach(b => {
+        const yr = parseInt(b.textContent);
+        b.classList.toggle('active', isNaN(yr) ? !activeYear : yr === activeYear);
+      });
+    }
+
+    updateStats(RAW_DATA);
+  })();
+
+  // ============================================================
+  // SIMULATOR
+  // ============================================================
+  (function buildSimulator() {
+    const freqEl = document.getElementById('sim-freq');
+    const sizeEl = document.getElementById('sim-size');
+    const urbanEl = document.getElementById('sim-urban');
+    const runBtn = document.getElementById('sim-run');
+    const resultsEl = document.getElementById('sim-results');
+    const counterEl = document.getElementById('sim-counter');
+    const yearEl = document.getElementById('sim-year');
+    const structEl = document.getElementById('sim-struct-count');
+    const eatonEl = document.getElementById('sim-eaton');
+    const compareEl = document.getElementById('sim-compare');
+    if (!freqEl || !runBtn) return;
+
+    freqEl.addEventListener('input', () => document.getElementById('sim-freq-val').textContent = freqEl.value);
+    sizeEl.addEventListener('input', () => document.getElementById('sim-size-val').textContent = sizeEl.value);
+    urbanEl.addEventListener('input', () => document.getElementById('sim-urban-val').textContent = urbanEl.value);
+
+    function randn() {
+      let u = Math.random() || 1e-10, v = Math.random() || 1e-10;
+      return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+    }
+
+    const EATON = 9418;
+    const COST_PER = 700000;
+    const CELL_VAL = 100;
+    const COLS = 20;
+    const MAX_CELLS = 300;
+    const CELL_SZ = 12, CELL_GAP = 2, CELL_STEP = CELL_SZ + CELL_GAP;
+
+    function buildGrid(containerId) {
+      const el = document.getElementById(containerId);
+      if (!el) return null;
+      el.innerHTML = '';
+      const rows = Math.ceil(MAX_CELLS / COLS);
+      const W = COLS * CELL_STEP, H = rows * CELL_STEP;
+      const svg = d3.select(el).append('svg')
+        .attr('viewBox', `0 0 ${W} ${H}`)
+        .attr('preserveAspectRatio', 'xMidYMid meet')
+        .style('width', '100%');
+      const order = d3.shuffle(d3.range(MAX_CELLS));
+      const nodes = [];
+      for (let i = 0; i < MAX_CELLS; i++) {
+        const col = i % COLS, row = Math.floor(i / COLS);
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('class', 'sim-cell');
+        rect.setAttribute('x', col * CELL_STEP);
+        rect.setAttribute('y', row * CELL_STEP);
+        rect.setAttribute('width', CELL_SZ);
+        rect.setAttribute('height', CELL_SZ);
+        rect.setAttribute('fill', '#1a1208');
+        rect.setAttribute('rx', 1);
+        svg.node().appendChild(rect);
+        nodes.push(rect);
       }
-      selectedYear = years[i]; refresh(); addScar(years[i]);
-    }, 900);
-  });
+      let prev = 0;
+      return {
+        burnTo(structures) {
+          const target = Math.min(Math.ceil(structures / CELL_VAL), MAX_CELLS);
+          for (let i = 0; i < prev && i < target; i++)
+            nodes[order[i]].setAttribute('fill', '#9e1b0b');
+          for (let i = prev; i < target; i++)
+            nodes[order[i]].setAttribute('fill', '#ff5a1f');
+          prev = target;
+        },
+        setAll(structures, color) {
+          const target = Math.min(Math.ceil(structures / CELL_VAL), MAX_CELLS);
+          for (let i = 0; i < MAX_CELLS; i++)
+            nodes[order[i]].setAttribute('fill', i < target ? color : '#1a1208');
+        },
+        reset() { prev = 0; nodes.forEach(n => n.setAttribute('fill', '#1a1208')); }
+      };
+    }
 
-  // ---------- auto-run animations when a figure scrolls into view ----------
-  function autorun(id, fn) {
-    const node = document.getElementById(id); if (!node) return;
-    if (!('IntersectionObserver' in window)) { fn(); return; }
-    const o = new IntersectionObserver(es => {
-      es.forEach(e => { if (e.isIntersecting) { fn(); o.disconnect(); } });
-    }, { threshold: 0.35 });
-    o.observe(node);
-  }
-  const spBtn = document.getElementById('spiral-play');
-  if (spBtn) spBtn.addEventListener('click', () => spiralPlay && spiralPlay());
-  autorun('spiral-chart', () => spiralPlay && spiralPlay());
-  autorun('map-chart', () => { if (!playTimer) playBtn.click(); });
+    function fmtCost(structures) {
+      const cost = structures * COST_PER;
+      return cost >= 1e9 ? '$' + (cost / 1e9).toFixed(1) + 'B' : '$' + (cost / 1e6).toFixed(0) + 'M';
+    }
+
+    function simYear(freq, size, urban) {
+      const logMean = Math.log(size), logStd = 1.6;
+      let t = 0;
+      for (let f = 0; f < freq; f++) {
+        const acres = Math.max(0.5, Math.exp(logMean + logStd * randn()));
+        t += acres * (Math.random() < urban / 100 ? 0.08 : 0.001);
+      }
+      return Math.round(t);
+    }
+
+    function simFull(freq, size, urban) {
+      let t = 0;
+      for (let y = 0; y < 10; y++) t += simYear(freq, size, urban);
+      return t;
+    }
+
+    function countUp(el, from, to, dur) {
+      const start = performance.now();
+      (function tick(now) {
+        const p = Math.min((now - start) / dur, 1);
+        const eased = 1 - Math.pow(1 - p, 3);
+        el.textContent = Math.round(from + (to - from) * eased).toLocaleString();
+        if (p < 1) requestAnimationFrame(tick);
+      })(performance.now());
+    }
+
+    let running = false;
+
+    runBtn.addEventListener('click', () => {
+      if (running) return;
+      running = true;
+      runBtn.textContent = 'Running...';
+      resultsEl.innerHTML = '';
+      counterEl.style.display = 'block';
+      eatonEl.textContent = '';
+
+      const freq = +freqEl.value, size = +sizeEl.value, urban = +urbanEl.value;
+
+      compareEl.innerHTML = `
+        <div style="font-family:var(--mono);font-size:11px;color:#6c5b46;margin-bottom:10px;letter-spacing:.04em">
+          TOTAL DESTRUCTION OVER 10 YEARS &mdash; EACH CELL = ${CELL_VAL} STRUCTURES
+        </div>
+        <div class="sim-grids-wrap">
+          <div class="sim-grid-col">
+            <div class="sim-grid-title active">YOUR SCENARIO</div>
+            <div class="sim-grid-params">${freq}/yr · ${size} ac · ${urban}% urban</div>
+            <div id="grid-user"></div>
+            <div id="grid-stats-0" style="margin-top:6px"></div>
+          </div>
+          <div class="sim-grid-col">
+            <div class="sim-grid-title">2015 RATES</div>
+            <div class="sim-grid-params">95/yr · 112 ac · 8% urban</div>
+            <div id="grid-2015"></div>
+            <div id="grid-stats-1" style="margin-top:6px"></div>
+          </div>
+          <div class="sim-grid-col">
+            <div class="sim-grid-title">2025 RATES</div>
+            <div class="sim-grid-params">554/yr · 30 ac · 15% urban</div>
+            <div id="grid-2025"></div>
+            <div id="grid-stats-2" style="margin-top:6px"></div>
+          </div>
+        </div>`;
+      compareEl.style.display = 'block';
+
+      const gUser = buildGrid('grid-user');
+      const g2015 = buildGrid('grid-2015');
+      const g2025 = buildGrid('grid-2025');
+
+      let cumStruct = 0, prevStruct = 0;
+
+      function runYear(yr) {
+        prevStruct = cumStruct;
+        cumStruct += simYear(freq, size, urban);
+        yearEl.textContent = yr;
+        eatonEl.textContent = `= ${(cumStruct / EATON).toFixed(1)} Eaton Fires over ${yr} year${yr > 1 ? 's' : ''} · ${fmtCost(cumStruct)} in damages`;
+        countUp(structEl, prevStruct, cumStruct, 450);
+        gUser.burnTo(cumStruct);
+
+        if (yr < 10) setTimeout(() => runYear(yr + 1), 500);
+        else setTimeout(() => finish(cumStruct), 500);
+      }
+
+      function finish(userVal) {
+        const b2015 = simFull(95, 112, 8);
+        const b2025 = simFull(554, 30, 15);
+
+        g2015.setAll(b2015, '#aa8a6a');
+        g2025.setAll(b2025, '#ff5a1f');
+
+        [{ val: userVal, isUser: true }, { val: b2015 }, { val: b2025 }]
+          .forEach((s, i) => {
+            document.getElementById(`grid-stats-${i}`).innerHTML = `
+              <div style="font-family:var(--display);font-size:clamp(20px,2.5vw,28px);color:${s.isUser ? 'var(--ember)' : '#9a8d7a'}">${s.val.toLocaleString()} <span style="font-family:var(--mono);font-size:11px">structures</span></div>
+              <div style="font-family:var(--mono);font-size:12px;color:${s.isUser ? '#e0d5c4' : '#6c5b46'}">${fmtCost(s.val)} estimated</div>
+              <div style="font-family:var(--text);font-style:italic;font-size:13px;color:${s.isUser ? '#e0d5c4' : '#8a7d6f'}">= ${(s.val / EATON).toFixed(1)} Eaton Fires</div>`;
+          });
+
+        const ratio = (userVal / Math.max(b2015, 1)).toFixed(1);
+        resultsEl.innerHTML = `<p class="sim-note">${
+          userVal > b2015
+            ? `Your scenario destroys ${ratio}x more than 2015 rates.${+freqEl.value > 200 && +sizeEl.value < 80 ? ' More small fires near cities is worse than fewer big fires in the wilderness.' : ''}`
+            : `Your scenario destroys ${(b2015 / Math.max(userVal, 1)).toFixed(1)}x fewer structures than 2015 rates.`
+        } Each run varies — try again.</p>`;
+        running = false;
+        runBtn.textContent = '▶ Simulate again';
+      }
+
+      runYear(1);
+    });
+
+    setTimeout(() => runBtn.click(), 800);
+  })();
+
+  // ============================================================
+  // FINAL CHART: step-driven (bars + fire count + structures reveal)
+  // ============================================================
+  charts.final = (function() {
+    if (!document.getElementById('final-chart')) return { update(){} };
+
+    const W = 720, H = 380, m = { top: 32, right: 100, bottom: 40, left: 70 };
+    const iw = W - m.left - m.right, ih = H - m.top - m.bottom;
+    const svg = d3.select('#final-chart').append('svg')
+      .attr('viewBox', `0 0 ${W} ${H}`).attr('preserveAspectRatio', 'xMidYMid meet');
+    const g = svg.append('g').attr('transform', `translate(${m.left},${m.top})`);
+    const x = d3.scaleBand().domain(years).range([0, iw]).padding(0.25);
+    const yA = d3.scaleLinear().domain([0, d3.max(perYear, d => d.acres)]).nice().range([ih, 0]);
+    const yC = d3.scaleLinear().domain([0, d3.max(perYear, d => d.count)]).nice().range([ih, 0]);
+
+    g.append('g').attr('class', 'grid')
+      .call(d3.axisLeft(yA).ticks(5).tickSize(-iw).tickFormat(''));
+
+    const bars = g.selectAll('.fb').data(perYear).join('rect')
+      .attr('class', 'acres-bar')
+      .attr('x', d => x(d.year)).attr('width', x.bandwidth())
+      .attr('y', ih).attr('height', 0);
+
+    const cLine = d3.line().x(d => x(d.year) + x.bandwidth()/2).y(d => yC(d.count));
+    const cPath = g.append('path').datum(perYear).attr('class', 'count-line').attr('d', cLine);
+    const cLen = cPath.node().getTotalLength();
+    cPath.attr('stroke-dasharray', `${cLen} ${cLen}`).attr('stroke-dashoffset', cLen);
+    const cDots = g.selectAll('.fc-dot').data(perYear).join('circle')
+      .attr('cx', d => x(d.year) + x.bandwidth()/2).attr('cy', d => yC(d.count))
+      .attr('r', 0).attr('fill', '#ff5a1f');
+
+    g.append('g').attr('class', 'axis').attr('transform', `translate(0,${ih})`)
+      .call(d3.axisBottom(x).tickFormat(d3.format('d')));
+    g.append('g').attr('class', 'axis')
+      .call(d3.axisLeft(yA).ticks(5).tickFormat(d => d>=1e6 ? (d/1e6)+'M' : d>=1e3 ? (d/1e3)+'K' : d));
+    const axC = g.append('g').attr('class', 'axis').attr('transform', `translate(${iw},0)`)
+      .call(d3.axisRight(yC).ticks(5)).attr('opacity', 0);
+    axC.selectAll('text').attr('fill', '#ff5a1f');
+    axC.selectAll('.domain').attr('stroke', '#ff5a1f');
+    svg.append('text').attr('class','axis-label').attr('text-anchor','middle')
+      .attr('transform', `translate(16,${m.top+ih/2}) rotate(-90)`).text('ACRES BURNED');
+    const labelC = svg.append('text').attr('class','axis-label').attr('text-anchor','middle').attr('fill','#ff5a1f')
+      .attr('transform', `translate(${W-58},${m.top+ih/2}) rotate(-90)`).text('FIRE COUNT').attr('opacity', 0);
+
+    let sPath, sDots, sLen, axS, labelS, anno2018, anno2025;
+    let structLoaded = false, pendingStep = -1;
+
+    fetch('impacts.json').then(r => r.json()).then(impacts => {
+      const data = perYear.map(d => ({
+        ...d,
+        structures: d3.sum(impacts.filter(f => f.year === d.year), f => f.structures)
+      }));
+      const yS = d3.scaleLinear().domain([0, d3.max(data, d => d.structures) * 1.15]).nice().range([ih, 0]);
+
+      const sLine = d3.line().x(d => x(d.year) + x.bandwidth()/2).y(d => yS(d.structures));
+      sPath = g.append('path').datum(data).attr('fill', 'none')
+        .attr('stroke', '#c1121f').attr('stroke-width', 3).attr('d', sLine);
+      sLen = sPath.node().getTotalLength();
+      sPath.attr('stroke-dasharray', `${sLen} ${sLen}`).attr('stroke-dashoffset', sLen);
+
+      sDots = g.selectAll('.fs-dot').data(data).join('circle')
+        .attr('cx', d => x(d.year) + x.bandwidth()/2).attr('cy', d => yS(d.structures))
+        .attr('r', 0).attr('fill', '#c1121f');
+
+      axS = g.append('g').attr('class', 'axis').attr('transform', `translate(${iw + 46},0)`)
+        .call(d3.axisRight(yS).ticks(4).tickFormat(d => d >= 1e3 ? (d/1e3)+'K' : d)).attr('opacity', 0);
+      axS.selectAll('text').attr('fill', '#c1121f');
+      axS.selectAll('.domain').attr('stroke', '#c1121f');
+      labelS = svg.append('text').attr('class','axis-label').attr('text-anchor','middle').attr('fill','#c1121f')
+        .attr('transform', `translate(${W-10},${m.top+ih/2}) rotate(-90)`).text('STRUCTURES').attr('opacity', 0);
+
+      const d18 = data.find(v => v.year === 2018);
+      anno2018 = g.append('g').attr('opacity', 0);
+      if (d18) {
+        anno2018.append('line').attr('class','anno-line')
+          .attr('x1', x(2018)+x.bandwidth()/2).attr('y1', yS(d18.structures)-6)
+          .attr('x2', x(2018)+x.bandwidth()/2).attr('y2', yS(d18.structures)-28);
+        anno2018.append('text').attr('class','anno').attr('text-anchor','middle').attr('fill','#c1121f').attr('font-weight','700')
+          .attr('x', x(2018)+x.bandwidth()/2).attr('y', yS(d18.structures)-32).text('22K structures');
+      }
+      const d25 = data.find(v => v.year === 2025);
+      anno2025 = g.append('g').attr('opacity', 0);
+      if (d25) {
+        anno2025.append('line').attr('class','anno-line')
+          .attr('x1', x(2025)+x.bandwidth()/2).attr('y1', yS(d25.structures)-6)
+          .attr('x2', x(2025)+x.bandwidth()/2).attr('y2', yS(d25.structures)-28);
+        anno2025.append('text').attr('class','anno').attr('text-anchor','middle').attr('fill','#c1121f').attr('font-weight','700')
+          .attr('x', x(2025)+x.bandwidth()/2).attr('y', yS(d25.structures)-32).text('16K structures');
+      }
+
+      structLoaded = true;
+      if (pendingStep >= 1) applyStructStep(pendingStep);
+    });
+
+    function applyStructStep(step) {
+      if (!structLoaded) return;
+      const show = step >= 1;
+      sPath.transition('sline').duration(show ? 1400 : 800)
+        .attr('stroke-dashoffset', show ? 0 : sLen);
+      sDots.transition('sdots').duration(800).delay((d,i) => show ? 600+i*40 : 0)
+        .attr('r', show ? 4 : 0);
+      axS.transition('axs').duration(800).attr('opacity', show ? 1 : 0);
+      labelS.transition('ls').duration(800).attr('opacity', show ? 1 : 0);
+      anno2018.transition('a18').duration(800).attr('opacity', step >= 2 ? 1 : 0);
+      anno2025.transition('a25').duration(800).attr('opacity', step >= 3 ? 1 : 0);
+    }
+
+    let cur = -1;
+    function update(step) {
+      if (step === cur) return;
+      cur = step;
+      pendingStep = step;
+      bars.transition('bars').duration(700).delay((d,i) => step === 0 ? i*50 : 0)
+        .attr('y', d => yA(d.acres))
+        .attr('height', d => ih - yA(d.acres))
+        .attr('opacity', step >= 3 ? 0.4 : 1);
+      cPath.transition('cline').duration(step === 0 ? 1200 : 700)
+        .attr('stroke-dashoffset', 0);
+      cDots.transition('cdots').duration(700).delay((d,i) => step === 0 ? 400+i*40 : 0)
+        .attr('r', 3);
+      axC.transition('axc').duration(700).attr('opacity', 1);
+      labelC.transition('lc').duration(700).attr('opacity', 1);
+      applyStructStep(step);
+    }
+    return { update };
+  })();
+
+  // ============================================================
+  // SCROLLYTELLING ENGINE
+  // ============================================================
+  (function setupScrolly() {
+    const sections = document.querySelectorAll('.scroll-section');
+    let ticking = false;
+
+    function onScroll() {
+      const vh = window.innerHeight;
+      const trigger = vh * 0.55;
+
+      sections.forEach(section => {
+        const sRect = section.getBoundingClientRect();
+        if (sRect.bottom < 0 || sRect.top > vh) return;
+
+        const steps = section.querySelectorAll('.s-step');
+        let activeIdx = -1;
+        steps.forEach((step, i) => {
+          if (step.getBoundingClientRect().top < trigger) activeIdx = i;
+        });
+        if (activeIdx < 0 && sRect.top < vh * 0.3) activeIdx = 0;
+
+        const prevIdx = parseInt(section.dataset.activeStep ?? -1);
+        if (activeIdx !== prevIdx && activeIdx >= 0) {
+          section.dataset.activeStep = activeIdx;
+          steps.forEach((s, i) => s.classList.toggle('is-active', i === activeIdx));
+          const key = section.dataset.chart;
+          if (charts[key]) charts[key].update(activeIdx);
+        }
+      });
+      ticking = false;
+    }
+
+    window.addEventListener('scroll', () => {
+      if (!ticking) { ticking = true; requestAnimationFrame(onScroll); }
+    }, { passive: true });
+    onScroll();
+  })();
+
+  // ============================================================
+  // FADE-IN for interlude elements
+  // ============================================================
+  (function fadeIns() {
+    const els = document.querySelectorAll('.fade-in');
+    if (!('IntersectionObserver' in window)) { els.forEach(e => e.classList.add('visible')); return; }
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(en => { if (en.isIntersecting) { en.target.classList.add('visible'); obs.unobserve(en.target); } });
+    }, { threshold: 0.15 });
+    els.forEach(e => obs.observe(e));
+  })();
 }
 
-// ---------- reveal (graceful) ----------
-(function reveal() {
-  const steps = document.querySelectorAll('.step');
-  function showAll() { steps.forEach(s => s.classList.add('in-view')); }
-  if (!('IntersectionObserver' in window)) { showAll(); return; }
-  const obs = new IntersectionObserver((entries) => {
-    entries.forEach(en => { if (en.isIntersecting) { en.target.classList.add('in-view'); obs.unobserve(en.target); } });
-  }, { threshold: 0.1 });
-  steps.forEach(s => obs.observe(s));
-  setTimeout(showAll, 2500);
-})();
-
-// ---------- parallax depth ----------
-(function parallax() {
+// parallax
+(function() {
   if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const els = [...document.querySelectorAll('[data-parallax]')];
   if (!els.length) return;
@@ -929,7 +1890,7 @@ function init() {
       const sp = parseFloat(el.dataset.parallax) || 0;
       const r = el.getBoundingClientRect();
       const mid = r.top + r.height / 2 - vh / 2;
-      const ty = Math.max(-70, Math.min(70, -mid * sp));  // clamp so layers stay home
+      const ty = Math.max(-70, Math.min(70, -mid * sp));
       el.style.transform = `translate3d(0, ${ty.toFixed(1)}px, 0)`;
     }
     ticking = false;
