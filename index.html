@@ -268,7 +268,8 @@
     background: transparent; color: #cdbfa9; cursor: pointer; text-transform: uppercase; letter-spacing: .03em;
   }
   .region-btn:hover, .yr-btn:hover { background: #221710; border-color: #6a5340; }
-  .region-btn.active, .yr-btn.active { background: var(--ember); color: #1a0f08; border-color: var(--ember); font-weight: 600; }
+  .yr-btn.active { background: var(--ember); color: #1a0f08; border-color: var(--ember); font-weight: 600; }
+  .region-btn.active { font-weight: 600; }
   .explore-grid {
     display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start;
   }
@@ -1319,13 +1320,14 @@ function buildAll() {
       .attr('stroke', 'rgba(255, 90, 31, 0.12)')
       .attr('stroke-width', 0.5);
 
-    const wedgeLabelAng = (-90 + 360 * 0.66) * Math.PI / 180;
+    const wedgeLabelAng = (-90 + 360 * 0.6) * Math.PI / 180;
     svg.append('text')
-      .attr('x', cx + (rMax + 34) * Math.cos(wedgeLabelAng))
-      .attr('y', cy + (rMax + 34) * Math.sin(wedgeLabelAng))
-      .attr('fill', 'rgba(255, 90, 31, 0.35)').attr('font-size', 8).attr('font-family', SANS)
+      .attr('x', cx + (rMax - 20) * Math.cos(wedgeLabelAng))
+      .attr('y', cy + (rMax - 20) * Math.sin(wedgeLabelAng))
+      .attr('fill', 'rgba(255, 90, 31, 0.3)').attr('font-size', 8).attr('font-family', SANS)
       .attr('text-anchor', 'middle').attr('letter-spacing', '.08em')
-      .text('TRADITIONAL FIRE SEASON');
+      .attr('transform', `rotate(${0.6*360 - 90}, ${cx + (rMax-20)*Math.cos(wedgeLabelAng)}, ${cy + (rMax-20)*Math.sin(wedgeLabelAng)})`)
+      .text('FIRE SEASON · MAY–NOV');
 
     const dots = RAW_DATA.map(d => {
       const frac = yearFrac(d);
@@ -1500,14 +1502,15 @@ function buildAll() {
       document.querySelectorAll('#region-btns .region-btn').forEach(b => {
         const isActive = b.textContent === 'All' ? !activeRegion : b.textContent === activeRegion;
         b.classList.toggle('active', isActive);
-        if (isActive && b.dataset.color) {
-          b.style.background = b.dataset.color;
-          b.style.borderColor = b.dataset.color;
+        if (isActive) {
+          const c = b.dataset.color || '#ff5a1f';
+          b.style.background = c;
+          b.style.borderColor = c;
           b.style.color = '#1a0f08';
         } else {
-          b.style.background = '';
-          b.style.borderColor = '';
-          b.style.color = '';
+          b.style.background = 'transparent';
+          b.style.borderColor = '#4a3a2c';
+          b.style.color = '#cdbfa9';
         }
       });
     }
