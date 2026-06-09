@@ -714,13 +714,12 @@
       <div class="body" style="margin-bottom:34px">
         <p><strong style="color:#fff">The question.</strong> How has wildfire destruction in California changed from 2015
           to 2025? The easy answer is fires keep getting bigger. Our data pushed back. The typical fire has
-          gotten smaller and far more frequent, which hides three things: a handful of rare
-          megafires drive almost half of all acres burned, damage is shifting toward the populated south, and
-          fire is spilling outside its normal season into winter.</p>
-        <p><strong style="color:#fff">The views.</strong> Five D3 visualizations, each carrying one beat of the argument: a
-          bar-and-line chart with a scroll-driven reveal, a force-layout swarm of all 3,118 fires, a concentration bar,
-          a scroll-driven burn map, and a calendar spiral. We used square-root scales so a million-acre fire
-          does not swallow the view.</p>
+          gotten smaller and far more frequent, which hides three things: damage is concentrated in urban fires,
+          it is shifting toward the populated south, and fire is spilling outside its normal season into winter.</p>
+        <p><strong style="color:#fff">Why this works.</strong> Acres burned is the default metric in every headline. By placing it
+          beside fire count and structures destroyed, the disconnect becomes impossible to miss. The
+          simulator lets readers feel how frequency and proximity compound over a decade, turning
+          an abstract trend into a visceral comparison.</p>
       </div>
       <dl>
         <dt>Project</dt><dd>DSC 106 Final</dd>
@@ -800,7 +799,7 @@ function buildAll() {
   function getRegion(s){ return countyToRegion[firstCounty(s)] || 'Other'; }
   const regions = Object.keys(regionMap);
   const regionColors = d3.scaleOrdinal().domain(regions)
-    .range(['#5b8c6e','#ef7a4d','#6a93a6','#e9c46a','#c1121f']);
+    .range(['#5b8c6e','#9b72cf','#6a93a6','#e9c46a','#c1121f']);
 
   const perYear = years.map(yr => {
     const fires = RAW_DATA.filter(d => d.year === yr);
@@ -2001,7 +2000,9 @@ function buildAll() {
     scrollTick = true;
     requestAnimationFrame(() => {
       const nearBottom = (window.innerHeight + window.scrollY) >= document.body.scrollHeight - 200;
+      const nearTop = window.scrollY < 100;
       arrow.style.opacity = nearBottom ? '0' : '1';
+      upArrow.style.opacity = nearTop ? '0' : '1';
       if (!hintDismissed && window.scrollY > window.innerHeight * 0.5) {
         hintDismissed = true;
         hint.classList.add('corner');
